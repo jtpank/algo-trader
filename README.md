@@ -27,7 +27,7 @@ poetry run python main.py
 
 ## Tests
 
-Implement all tests in the ./tests directory following the pytest framework.
+Implement all tests in the `./tests` directory following the pytest framework.
 ```
 poetry run pytest
 ```
