@@ -5,7 +5,7 @@ Explanation goes here.
 ## Setup
 
 The pipeline is implemented in python and can be installed using poetry.
-To install poetry (OSX or Linux) run:
+To install poetry (OSX, Linux, or WSL) run:
 
 ```
 curl -sSL https://install.python-poetry.org | python3 -
