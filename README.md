@@ -24,7 +24,13 @@ Running Scripts:
 ```bash
 poetry run python main.py
 ```
+## Development
 
+Please use `black` and `isort` to format all python scripts. Run:
+```
+poetry run black .
+poetry run isort .
+```
 ## Tests
 
 Implement all tests in the `./tests` directory following the pytest framework.

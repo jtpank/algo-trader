@@ -1,12 +1,16 @@
-from abc import ABCMeta, abstractmethod
 import datetime
+from abc import ABCMeta, abstractmethod
+
 try:
     import Queue as queue
 except ImportError:
     import queue
+
 import numpy as np
 import pandas as pd
+
 from algo_event.event import SignalEvent
+
 
 class Strategy(object):
     """
@@ -19,7 +23,9 @@ class Strategy(object):
     the Strategy object is agnostic to where the data came from,
     since it obtains the bar tuples from a queue object.
     """
+
     __metaclass__ = ABCMeta
+
     @abstractmethod
     def calculate_signals(self):
         """

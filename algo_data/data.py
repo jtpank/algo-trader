@@ -1,9 +1,13 @@
-from abc import ABCMeta, abstractmethod
 import datetime
-import os, os.path
+import os
+import os.path
+from abc import ABCMeta, abstractmethod
+
 import numpy as np
 import pandas as pd
+
 from algo_event.event import MarketEvent
+
 
 class DataHandler(object):
     """
@@ -15,25 +19,30 @@ class DataHandler(object):
     market data would be sent "down the pipe". Thus a historic and live
     system will be treated identically by the rest of the backtesting suite.
     """
+
     __metaclass__ = ABCMeta
+
     @abstractmethod
     def get_latest_bar(self, symbol):
         """
         Returns the last bar updated.
         """
         raise NotImplementedError("Should implement get_latest_bar()")
+
     @abstractmethod
     def get_latest_bars(self, symbol, N=1):
         """
         Returns the last N bars updated.
         """
         raise NotImplementedError("Should implement get_latest_bars()")
+
     @abstractmethod
     def get_latest_bar_datetime(self, symbol):
         """
         Returns a Python datetime object for the last bar.
         """
         raise NotImplementedError("Should implement get_latest_bar_datetime()")
+
     @abstractmethod
     def get_latest_bar_value(self, symbol, val_type):
         """
@@ -41,6 +50,7 @@ class DataHandler(object):
         from the last bar.
         """
         raise NotImplementedError("Should implement get_latest_bar_value()")
+
     @abstractmethod
     def get_latest_bars_values(self, symbol, val_type, N=1):
         """
@@ -48,6 +58,7 @@ class DataHandler(object):
         latest_symbol list, or N-k if less available.
         """
         raise NotImplementedError("Should implement get_latest_bars_values()")
+
     @abstractmethod
     def update_bars(self):
         """
@@ -56,6 +67,7 @@ class DataHandler(object):
         close, volume, open interest).
         """
         raise NotImplementedError("Should implement update_bars()")
+
 
 class HistoricJsonDataHandler(DataHandler):
     pass

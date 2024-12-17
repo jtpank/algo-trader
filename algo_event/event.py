@@ -1,18 +1,22 @@
 from loguru import logger
 
+
 class Event(object):
     pass
+
 
 class MarketEvent(Event):
     def __init__(self):
         self.event_type = "MARKET"
         logger.info("Constructed a Market Event Object")
 
+
 class SignalEvent(Event):
     """
     Handles the event of sending a Signal from a Strategy object.
     This is received by a Portfolio object and acted upon.
     """
+
     def __init__(self, strategy_id, symbol, datetime, signal_type, strength):
         """
         Initialises the SignalEvent.
@@ -33,6 +37,7 @@ class SignalEvent(Event):
         self.strength = strength
         logger.info("Constructed a Signal Event Object")
 
+
 class OrderEvent(Event):
     def __init__(self, symbol, order_type, quantity, direction):
         """
@@ -52,14 +57,16 @@ class OrderEvent(Event):
         self.quantity = quantity
         self.direction = direction
         logger.log("Created an Order Event Object")
+
     def print_order(self):
         """
         Outputs the values within the Order.
         """
         print(
-            "Order: Symbol=%s, Type=%s, Quantity=%s, Direction=%s" %
-            (self.symbol, self.order_type, self.quantity, self.direction)
+            "Order: Symbol=%s, Type=%s, Quantity=%s, Direction=%s"
+            % (self.symbol, self.order_type, self.quantity, self.direction)
         )
+
 
 class FillEvent(Event):
     """
@@ -68,7 +75,17 @@ class FillEvent(Event):
     actually filled and at what price. In addition, stores
     the commission of the trade from the brokerage.
     """
-    def __init__(self, timeindex, symbol, exchange, quantity, direction, fill_cost, commission=None):
+
+    def __init__(
+        self,
+        timeindex,
+        symbol,
+        exchange,
+        quantity,
+        direction,
+        fill_cost,
+        commission=None,
+    ):
         """
         Initialises the FillEvent object. Sets the symbol, exchange,
         quantity, direction, cost of fill and an optional
