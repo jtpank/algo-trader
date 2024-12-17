@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "algo-model"
+version = "0.1.0"
+description = ""
+authors = ["Justin Pank <jtpank34@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+numpy = "^2.2.0"
+pandas = "^2.2.3"
+scipy = "^1.14.1"
+statsmodels = "^0.14.4"
+scikit-learn = "^1.6.0"
+matplotlib = "^3.10.0"
+ipython = "^8.30.0"
+loguru = "^0.7.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
