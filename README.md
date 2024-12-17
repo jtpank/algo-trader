@@ -24,5 +24,11 @@ Running Scripts:
 ```bash
 poetry run python main.py
 ```
+
+## Tests
+
+Implement all tests in the ./tests directory following the pytest framework.
 ```
+poetry run pytest
 ```
+

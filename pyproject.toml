@@ -15,6 +15,7 @@ scikit-learn = "^1.6.0"
 matplotlib = "^3.10.0"
 ipython = "^8.30.0"
 loguru = "^0.7.3"
+pytest = "^8.3.4"
 
 
 [build-system]
