@@ -13,8 +13,13 @@ def main():
     log.add(sys.stderr, level="TRACE")
     # me = event.MarketEvent()
     log.info("In main")
-    df = data.DataFetcher(os.path.join(".", "algo_data", "historical"))
-    df.get_bars("NVDA", start="2024-01-01")
+
+    data_folder = os.path.join(".", "algo_data", "historical")
+    interval = "1d"
+    start = "2023-01-01"
+    end = "2025-01-01"
+    df = data.DataFetcher(data_folder, interval, start, end)
+    df.get_bars("NVDA")
 
 
 if __name__ == "__main__":

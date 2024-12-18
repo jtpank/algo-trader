@@ -78,29 +78,35 @@ class DataFetcher(object):
     it from there, otherwise it interfaces with yfinance to get it.
     """
 
-    def __init__(self, data_folder):
-        self.data_folder = data_folder
+    def __init__(self, data_folder, interval, start, end):
         self.key_metrics = ["Open", "High", "Low", "Close", "Volume"]
-        if not os.path.exists(data_folder):
-            os.makedirs(data_folder)
+        self.interval = interval
+        self.start = start
+        self.end = end
+        marked_dir = f"{interval}${start}${end}"
+        self.data_folder = os.path.join(data_folder, marked_dir)
+        if not os.path.exists(self.data_folder):
+            os.makedirs(self.data_folder)
 
-    def _get_from_local(self, symbol, start, end, interval):
-        log.trace(f"Getting {symbol}")
+    def _get_from_local(self, symbol):
+        log.trace(f"Getting {symbol} from local")
         file_path = os.path.join(self.data_folder, f"{symbol}.csv")
         data = pd.read_csv(file_path, index_col="Date")
         return self._filter_history(data)
 
-    def _get_from_api(self, symbol, start, end, interval):
-        log.trace(
-            f"Getting {symbol} between ${start}, ${end} at ${interval} increments"
-        )
+    def _get_from_api(self, symbol):
+        log.trace(f"Getting {symbol} from api")
         yf_ticker = yf.Ticker(symbol)
-        history = yf_ticker.history(interval=interval, start=start, end=end)
+        history = yf_ticker.history(
+            interval=self.interval, start=self.start, end=self.end
+        )
 
         # Retry once since api is flakey
         if history.empty:
             log.info(f"{symbol} not found. Retrying once...")
-            history = yf_ticker.history(interval=interval, start=start, end=end)
+            history = yf_ticker.history(
+                interval=self.interval, start=self.start, end=self.end
+            )
             if history.empty:
                 log.warning(f"Could not find {symbol}")
                 return None
@@ -132,14 +138,14 @@ class DataFetcher(object):
         csv_symbols = [f[:-4] for f in csv_files]
         return symbol in csv_symbols
 
-    def get_bars(self, symbol, start, end=None, interval="1d"):
+    def get_bars(self, symbol):
         """
         Gets the data for the given symbol and timeframe
         """
         if self._has_symbol(symbol):
-            history = self._get_from_local(symbol, start, end, interval)
+            history = self._get_from_local(symbol)
         else:
-            history = self._get_from_api(symbol, start, end, interval)
+            history = self._get_from_api(symbol)
             if history is None:
                 return None
             self._save_history(symbol, history)
