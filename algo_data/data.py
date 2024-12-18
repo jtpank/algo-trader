@@ -151,3 +151,34 @@ class DataFetcher(object):
             self._save_history(symbol, history)
 
         return history
+
+    def bulk_download(self, symbols: list[str], _retry=False):
+        log.trace(f"Downloading {symbols}")
+        histories = yf.download(
+            symbols,
+            start=self.start,
+            end=self.end,
+            interval=self.interval,
+            ignore_tz=True,
+            group_by="ticker",
+        )
+        downloaded_symbols = list(histories.columns.unique(level="Ticker"))
+        failed_symbols = []
+        for symbol in downloaded_symbols:
+            history = histories[symbol]
+            if history.empty:
+                failed_symbols.append(symbol)
+                continue
+
+            self._save_history(symbol, history)
+
+        saved_symbols = [s for s in symbols if s not in failed_symbols]
+        log.info(f"Successfully downloaded {saved_symbols}")
+
+        # Retry once
+        if len(failed_symbols) > 0:
+            if _retry:
+                log.warning(f"Failed to download {failed_symbols}")
+            else:
+                log.info(f"Retrying download for {failed_symbols}")
+                self.bulk_download(failed_symbols, True)
