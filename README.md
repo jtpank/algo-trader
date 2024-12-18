@@ -11,7 +11,7 @@ To install poetry (OSX, Linux, or WSL) run:
 curl -sSL https://install.python-poetry.org | python3 -
 ```
 
-Then from the `./algo_model` directory run the command below to install dependencies:
+Then from the `./algo-trader` directory run the command below to install dependencies:
 
 ```bash
 poetry install
