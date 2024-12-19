@@ -1,8 +1,10 @@
 import os
+
 import numpy as np
 import pandas as pd
 import yfinance as yf
 from loguru import logger as log
+
 
 class DataFetcher(object):
     """
