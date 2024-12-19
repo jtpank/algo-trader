@@ -88,13 +88,13 @@ class DataFetcher(object):
         if not os.path.exists(self.data_folder):
             os.makedirs(self.data_folder)
 
-    def _get_from_local(self, symbol):
+    def _get_from_local(self, symbol) -> pd.DataFrame:
         log.trace(f"Getting {symbol} from local")
         file_path = os.path.join(self.data_folder, f"{symbol}.csv")
         data = pd.read_csv(file_path, index_col="Date")
         return self._filter_history(data)
 
-    def _get_from_api(self, symbol):
+    def _get_from_api(self, symbol) -> pd.DataFrame | None:
         log.trace(f"Getting {symbol} from api")
         yf_ticker = yf.Ticker(symbol)
         history = yf_ticker.history(
@@ -128,7 +128,7 @@ class DataFetcher(object):
         save_path = os.path.join(self.data_folder, f"{symbol}.csv")
         data.to_csv(save_path)
 
-    def _filter_history(self, data: pd.DataFrame):
+    def _filter_history(self, data: pd.DataFrame) -> pd.DataFrame:
         filtered = data[self.key_metrics]
         return filtered
 
@@ -138,7 +138,7 @@ class DataFetcher(object):
         csv_symbols = [f[:-4] for f in csv_files]
         return symbol in csv_symbols
 
-    def get_bars(self, symbol):
+    def get_bars(self, symbol) -> pd.DataFrame | None:
         """
         Gets the data for the given symbol and timeframe
         """
@@ -152,7 +152,14 @@ class DataFetcher(object):
 
         return history
 
-    def bulk_download(self, symbols: list[str], _retry=False):
+    def bulk_download(self, symbols: list[str], _retry=False) -> list[str]:
+        """
+        Quickly download a bunch of symbols. This is a QOL if you already know what tickers you want to deal with and want to
+        speed up accessing them, rather than fetching one by one. Note this also consumes far fewer API calls.
+        This function does NOT check if the symbols already exist and WILL overwrite them if they do.
+
+        Returns the list of symbols successfully downloaded
+        """
         log.trace(f"Downloading {symbols}")
         histories = yf.download(
             symbols,
@@ -181,10 +188,12 @@ class DataFetcher(object):
                 log.warning(f"Failed to download {failed_symbols}")
             else:
                 log.info(f"Retrying download for {failed_symbols}")
-                self.bulk_download(failed_symbols, True)
+                return saved_symbols + self.bulk_download(failed_symbols, True)
+
+        return saved_symbols
 
 
-def to_np(data: pd.DataFrame):
+def to_np(data: pd.DataFrame) -> np.ndarray:
     """
     Converts a DataFrame into a Numpy array.
     The array is float64 to preserve efficiency with operations. The unix timestamp will not have an off-by-one
@@ -197,8 +206,6 @@ def to_np(data: pd.DataFrame):
         pd.to_datetime(copy["Date"]) - pd.Timestamp("1970-01-01")
     ) // pd.Timedelta("1s")
     # Guarantee ordering
-    copy = copy[
-        ["Date", "Open", "High", "Low", "Close", "Volume"]
-    ]
+    copy = copy[["Date", "Open", "High", "Low", "Close", "Volume"]]
     data_np = copy.to_numpy(dtype=np.float64)
     return data_np
