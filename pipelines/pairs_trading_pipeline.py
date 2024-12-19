@@ -35,7 +35,7 @@ class PairsTradingPipeline(object):
         self.adf_cutoff = adf_cutoff
         self.integrator = IntegratorTypes()
         self.save_plots = True
-        self.integrator_cutoff = 2  # max number of attempts to integrate
+        self.integrator_cutoff = 1  # max number of attempts to integrate
         log.info(
             f"Generated PairsTradingPipeline Object with {len(input_data_set)} time series."
         )
@@ -47,6 +47,11 @@ class PairsTradingPipeline(object):
         for ticker, time_series in self.cleaned_data_set.items():
             count = 0
             stationarity_obj = self._check_stationarity(ticker, time_series, count)
+            #Note: What we really want to do is see for which IntegratorTypes do we get an
+            # integrator of order 1 time series. 
+            # Then we match all integrator of order 1 series for that specific IntegratorType
+            # Then we can perform cointegration
+            #TODO: FIX! see above
             while not stationarity_obj.is_stationary or (
                 count > self.integrator_cutoff
             ):
@@ -65,6 +70,11 @@ class PairsTradingPipeline(object):
                 output_img_path = os.path.join(data_folder, f"{ticker}-stationary.png")
                 plt.savefig(output_img_path)
                 log.info(f"Saving image to {output_img_path}")
+        
+        # Now lets begin to perform cointegration
+        # 1. We need a set S of integrator of order n = 1 time series: S = (X0, X1, ... Xn) for Xi is order n
+        # 2. If there exists a linear combination of those series in the set S such that the new series is stationary (order n = 0)
+        #  ==> then the series are cointegrated!
 
     def _clean_data(self):
         # TODO: make this better (this is hacky right now)... maybe clean before creating object so
