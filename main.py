@@ -3,7 +3,7 @@ import sys
 
 from loguru import logger as log
 
-from algo_data import data
+from data import utils
 from algo_event import event
 from algo_model import strategy
 
@@ -14,13 +14,13 @@ def main():
     # me = event.MarketEvent()
     log.info("In main")
 
-    data_folder = os.path.join(".", "algo_data", "historical")
+    data_folder = os.path.join(".", "data", "historical")
     interval = "1d"
     start = "2023-01-01"
     end = "2025-01-01"
-    data_fetcher = data.DataFetcher(data_folder, interval, start, end)
+    data_fetcher = utils.DataFetcher(data_folder, interval, start, end)
     df = data_fetcher.get_bars("NVDA")
-    arr = data.to_np(df)
+    arr = utils.to_np(df)
     print(arr)
 
 
