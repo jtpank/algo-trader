@@ -75,6 +75,8 @@ class PairsTradingPipeline(object):
         # 1. We need a set S of integrator of order n = 1 time series: S = (X0, X1, ... Xn) for Xi is order n
         # 2. If there exists a linear combination of those series in the set S such that the new series is stationary (order n = 0)
         #  ==> then the series are cointegrated!
+        # NOTE: That the imported function: coint can be used! but it only comes with augmented Engle-Granger method see:
+        # https://www.statsmodels.org/stable/generated/statsmodels.tsa.stattools.coint.html#statsmodels.tsa.stattools.coint
 
     def _clean_data(self):
         # TODO: make this better (this is hacky right now)... maybe clean before creating object so
