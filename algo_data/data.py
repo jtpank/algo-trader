@@ -182,3 +182,23 @@ class DataFetcher(object):
             else:
                 log.info(f"Retrying download for {failed_symbols}")
                 self.bulk_download(failed_symbols, True)
+
+
+def to_np(data: pd.DataFrame):
+    """
+    Converts a DataFrame into a Numpy array.
+    The array is float64 to preserve efficiency with operations. The unix timestamp will not have an off-by-one
+    floating point precision problem until it is scaled by approximately 2^22.\n
+    The columns correspond to [Date, Open, High, Low, Close, Volume]\n
+    Date is in UNIX seconds, not milliseconds
+    """
+    copy = data.reset_index()
+    copy["Date"] = (
+        pd.to_datetime(copy["Date"]) - pd.Timestamp("1970-01-01")
+    ) // pd.Timedelta("1s")
+    # Guarantee ordering
+    copy = copy[
+        ["Date", "Open", "High", "Low", "Close", "Volume"]
+    ]
+    data_np = copy.to_numpy(dtype=np.float64)
+    return data_np

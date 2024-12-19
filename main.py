@@ -18,8 +18,10 @@ def main():
     interval = "1d"
     start = "2023-01-01"
     end = "2025-01-01"
-    df = data.DataFetcher(data_folder, interval, start, end)
-    df.get_bars("NVDA")
+    data_fetcher = data.DataFetcher(data_folder, interval, start, end)
+    df = data_fetcher.get_bars("NVDA")
+    arr = data.to_np(df)
+    print(arr)
 
 
 if __name__ == "__main__":
