@@ -20,7 +20,7 @@ def main():
     interval = "1d"
     start = "2023-01-01"
     end = "2025-01-01"
-    tickers = ["NVDA"]
+    tickers = ["NVDA", "TSLA"]
     data_set_dict = {}
     for ticker in tickers:
         data_fetcher = utils.DataFetcher(data_folder, interval, start, end)

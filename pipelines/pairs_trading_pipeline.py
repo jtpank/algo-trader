@@ -69,6 +69,7 @@ class PairsTradingPipeline(object):
                 data_folder = os.path.join(".", "pipelines", "pairs_pipeline_images")
                 output_img_path = os.path.join(data_folder, f"{ticker}-stationary.png")
                 plt.savefig(output_img_path)
+                plt.close()
                 log.info(f"Saving image to {output_img_path}")
         
         # Now lets begin to perform cointegration
