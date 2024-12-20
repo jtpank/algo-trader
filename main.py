@@ -20,7 +20,10 @@ def main():
     interval = "1d"
     start = "2023-01-01"
     end = "2025-01-01"
-    tickers = ["NVDA", "TSLA"]
+    # tickers = ["NVDA", "TSLA"]
+    #note that the below has an example of confounding variables
+    # these are tickers from solar sector
+    tickers = ['FSLR', 'ENPH', 'NXT', 'RUN', 'ARRY', 'SEDG', 'CSIQ', 'MAXN']
     data_set_dict = {}
     for ticker in tickers:
         data_fetcher = utils.DataFetcher(data_folder, interval, start, end)
