@@ -162,11 +162,14 @@ class PairsTradingPipeline(object):
         #This is currently a moving average (simple, and prevents look ahead bias)
         #seed for reproducibility
         #TODO this needs to be understood more...
-        if False:
-            np.random.seed(69)
-            rolling_model = RollingOLS(endog=data_y, exog=data_x, window=window_size)
-            rolling_results = rolling_model.fit(params_only=True)
-            print(rolling_results.params)
+        np.random.seed(69)
+        rolling_model = RollingOLS(endog=data_y, exog=data_x, window=window_size)
+        rolling_results = rolling_model.fit(params_only=True)
+        spread = data_x - rolling_results.params * data_y
+
+        # spread mov1  = pd.rolling_mean(spread, window=1)
+        #also need a rolling mean + rolling std dev to accompany this
+        # print(rolling_results.params)
 
         
 
