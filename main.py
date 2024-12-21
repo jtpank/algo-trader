@@ -4,7 +4,7 @@ import sys
 from loguru import logger as log
 
 from algo_event import event
-from algo_model import strategy
+from model import strategy
 from data import utils
 from pipelines import pairs_trading_pipeline as ptp
 
