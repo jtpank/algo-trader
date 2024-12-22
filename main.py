@@ -24,6 +24,7 @@ def main():
     #note that the below has an example of confounding variables
     # these are tickers from solar sector
     tickers = ['FSLR', 'ENPH', 'NXT', 'RUN', 'ARRY', 'SEDG', 'CSIQ', 'MAXN']
+    #tickers = ['ENPH', 'CSIQ']
     data_set_dict = {}
     for ticker in tickers:
         data_fetcher = utils.DataFetcher(data_folder, interval, start, end)
