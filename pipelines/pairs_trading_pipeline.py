@@ -1,4 +1,5 @@
 import os
+import statsmodels.api as sm
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List
 
@@ -42,6 +43,7 @@ class PairsTradingPipeline(object):
         self.adf_cutoff = adf_cutoff
         self.integrator = IntegratorTypes()
         self.save_plots = False
+        self.save_res_plots = True 
         self.integrator_cutoff = 1  # max number of attempts to integrate
         self.cointegration_cutoff = cointegration_cutoff
         log.info(
@@ -71,7 +73,8 @@ class PairsTradingPipeline(object):
         first_pair = list(self.cointegrated_pairs_set)[0]
         data_y = self.cleaned_data_set[first_pair[0]]
         data_x = self.cleaned_data_set[first_pair[1]]
-        self._run_moving_average_regression(data_y, data_x)
+        self._run_ols_and_plot_residuals(data_y, data_x, first_pair[0], first_pair[1])
+        #self._run_moving_average_regression(data_y, data_x)
 
     def _clean_data(self):
         # TODO: make this better (this is hacky right now)... maybe clean before creating object so
@@ -158,17 +161,58 @@ class PairsTradingPipeline(object):
         #TODO check and remove confounded pairs
         pass
 
+    def _run_ols_and_plot_residuals(self, data_y, data_x, ticker_y, ticker_x):
+        data_x = data_x.reshape(-1, 1)
+        xconst = sm.add_constant(data_x)
+        model = sm.OLS(data_y, xconst)
+        results = model.fit()
+        beta = results.params[1]
+        alpha = results.params[0]
+        residuals = []
+        for idx, data_point in enumerate(data_x):
+            val = alpha + data_y[idx] - beta * data_point
+            residuals.append(val)
+        #TODO: how to find zscore and plot it
+        #zscore = ((residuals - residuals.mean())/residuals.std())
+        #print(zscore)
+        residuals = np.array(residuals)
+        residuals_mean = residuals.mean()
+        zscore_series = self._zscore(residuals)
+        #TODO: establish weights to compute s1 and s2 shares
+        if self.save_res_plots:
+            time_series = list(range(0, len(residuals)))
+            #plt.plot(time_series, residuals)
+            plt.plot(time_series, zscore_series)
+            plt.axhline(zscore_series.mean(), color='black')
+            plt.axhline(1.0, color='red', linestyle='--')
+            plt.axhline(-1.0, color='green', linestyle='--')
+            plt.legend(['Spread z-score', 'Mean', '+1', '-1'])
+            #plt.plot(time_series, residuals_mean)
+            plt.ylabel("Residuals")
+            data_folder = os.path.join(".", "pipelines", "pairs_residuals")
+            output_img = os.path.join(data_folder, f"{ticker_y}-{ticker_x}-residuals.png")
+            plt.savefig(output_img)
+            plt.close()
+            log.info(f"Saving image to {output_img}")
+            adfuller_result = adfuller(residuals)
+            log.info(f"adfuller on residuals: {adfuller_result}")
+
+    def _zscore(self, series):
+        return (series - series.mean()) / np.std(series)
+
     def _run_moving_average_regression(self, data_y, data_x, window_size: int = 30):
         #This is currently a moving average (simple, and prevents look ahead bias)
         #seed for reproducibility
         #TODO this needs to be understood more...
-        if False:
-            np.random.seed(69)
-            rolling_model = RollingOLS(endog=data_y, exog=data_x, window=window_size)
-            rolling_results = rolling_model.fit(params_only=True)
-            print(rolling_results.params)
+        np.random.seed(69)
+        rolling_model = RollingOLS(endog=data_y, exog=data_x, window=window_size)
+        rolling_results = rolling_model.fit(params_only=True)
+        spread = data_x - rolling_results.params * data_y
 
-        
+        # spread mov1  = pd.rolling_mean(spread, window=1)
+        #also need a rolling mean + rolling std dev to accompany this
+        # print(rolling_results.params)
+
 
 class IntegratorTypes(object):
     """
