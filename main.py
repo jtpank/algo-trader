@@ -1,6 +1,5 @@
 import os
 import sys
-
 from loguru import logger as log
 
 from algo_event import event
