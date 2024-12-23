@@ -74,13 +74,13 @@ class PairsTrader(object):
     def update(self, data_row_x: pd.DataFrame, data_row_y: pd.DataFrame):
         #append the data point and update the zscore
         if not self.df_x.empty and not self.df_y.empty:
-            self.df_y = pd.concat([self.df_y, data_row_y], ignore_index=True)
-            self.df_x = pd.concat([self.df_x, data_row_x], ignore_index=True)
-            logger.info("Updated df_y and df_x with new data.")
+            self.df_y = pd.concat([self.df_y, data_row_y])
+            self.df_x = pd.concat([self.df_x, data_row_x])
+            logger.trace("Updated df_y and df_x with new data.")
         else:
             self.df_y = data_row_y
             self.df_x = data_row_x
-            logger.info("Initialized df_y and df_x.")
+            logger.trace("Initialized df_y and df_x.")
         self.series_x = self.df_x[self.key]
         self.series_y = self.df_y[self.key]
         assert(len(self.series_y) == len(self.series_x))
@@ -89,8 +89,8 @@ class PairsTrader(object):
         rolling_results = roll_ols_model.fit(params_only=True)
 
         self.rolling_beta = pd.DataFrame()
-        self.rolling_beta["Date"] = self.df_y["Date"].values
-        self.rolling_beta["Beta"] = rolling_results.params[self.key]
+        self.rolling_beta["Date"] = self.df_y.index.values
+        self.rolling_beta["Beta"] = rolling_results.params[self.key].reset_index(drop=True)
         spread = self.series_y - rolling_results.params[self.key] *  self.series_x 
         spread_mavg1 = spread.rolling(window=1).mean()
         spread_mavg30 = spread.rolling(self.window_size).mean()
@@ -99,9 +99,9 @@ class PairsTrader(object):
 
         #inefficient
         self.rolling_zscore = pd.DataFrame()
-        self.rolling_zscore["Date"] = self.df_y["Date"].values
+        self.rolling_zscore["Date"] = self.df_y.index.values
         self.rolling_zscore["Zscore"] = self.zscore_30_1.values
-        logger.info("Updated rolling_zscore.")
+        logger.trace("Updated rolling_zscore.")
 
 
 if __name__=="__main__":
