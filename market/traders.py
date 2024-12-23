@@ -51,6 +51,10 @@ class SimulatedTrader(object):
         unix_off = pd.to_datetime([self.current_day]) - pd.Timestamp("1970-01-01")
         unix_off_s = (unix_off // pd.Timedelta("1s")).to_numpy()
         [ind] = np.searchsorted(MARKET_UNIX_S, unix_off_s, side='right')
+        if ind >= len(MARKET_DAYS):
+            log.warning(f"No market days marked for next day following {self.current_day}") 
+            self.current_day = None
+            return
         self.current_day = MARKET_DAYS[ind]
         # log.info(f"Went to next trading day {self.current_day}")
 

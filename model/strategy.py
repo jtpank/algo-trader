@@ -22,6 +22,7 @@ class PairsStrategy(object):
         self.z_enter = z_enter
         self.z_exit = z_exit
         self.has_position = False
+        self.record = []
 
     def _enter(self, coeff_stock1, coeff_stock2):
         assert not self.has_position
@@ -70,9 +71,12 @@ class PairsStrategy(object):
         if self.has_position:
             if abs(z_score) < self.z_exit:
                 self._exit()
+                self.record.append([self.trader.current_day, self.buying_power])
         else:
             if z_score > self.z_enter:
+                self.record.append([self.trader.current_day, self.buying_power])
                 self._enter(-coeff_stock1, -coeff_stock2)
             elif z_score < -self.z_enter:
+                self.record.append([self.trader.current_day, self.buying_power])
                 self._enter(coeff_stock1, coeff_stock2)
         

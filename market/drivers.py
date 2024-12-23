@@ -2,14 +2,13 @@ from market.traders import SimulatedTrader
 from model.strategy import PairsStrategy
 from data.utils import DataFetcher
 from pipelines.PairsTrader import PairsTrader
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 import sys
 from loguru import logger as log
 
-def simulate_pairs(symbolx, symboly):
-    trader = SimulatedTrader()
-    strategy = PairsStrategy(symbolx, symboly, trader, 1000)
+def simulate_pairs(symbolx, symboly, strategy: PairsStrategy, trader: SimulatedTrader, fail=False):
     data_folder = os.path.join(".", "data", "historical")
     fetcher = DataFetcher(data_folder, "1d", "2023-01-01", None)
 
@@ -35,13 +34,18 @@ def simulate_pairs(symbolx, symboly):
         z_score = pairs_analyzer.get_zscore(day)
         if np.isnan(beta):
             break
-        strategy.update(z_score, -beta, 1)
+
+        if fail:
+            strategy.update(z_score, beta, -1)
+        else:
+            strategy.update(z_score, -beta, 1)
+        # strategy.update(z_score, -beta, 1)
         trader.go_next_trading_day()
         day = trader.current_day
 
     ind = 252
     while True:
-        if ind > len(df1.index): break
+        if ind > len(df1.index) or day is None: break
         df1_next_day = df1.iloc[[ind]]
         df2_next_day = df2.iloc[[ind]]
         pairs_analyzer.update(df1_next_day, df2_next_day)
@@ -49,12 +53,11 @@ def simulate_pairs(symbolx, symboly):
         beta = pairs_analyzer.get_beta(day)
         z_score = pairs_analyzer.get_zscore(day)
         if np.isnan(beta): break
-        strategy.update(z_score, -beta, 1)
+        if fail:
+            strategy.update(z_score, beta, -1)
+        else:
+            strategy.update(z_score, -beta, 1)
+        # strategy.update(z_score, -beta, 1)
         trader.go_next_trading_day()
         day = trader.current_day
         ind += 1
-
-    
-# log.remove()
-# log.add(sys.stderr, level="TRACE")
-simulate_pairs("ENPH", "CSIQ")
