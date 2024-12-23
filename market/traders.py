@@ -10,6 +10,9 @@ ALLOWED_ACTIONS = ALLOWED_POSITIVE_ACTIONS + ALLOWED_NEGATIVE_ACTIONS
 MARKET_DAYS = pd.read_csv('./market/info.csv')["market_dates"].to_list()
 MARKET_UNIX_S = ((pd.to_datetime(MARKET_DAYS) - pd.Timestamp("1970-01-01")) // pd.Timedelta("1s")).to_numpy()
 
+def fmt(num):
+    return "{:.2f}".format(num)
+
 class SimulatedTrader(object):
     """
     Simulates market trades on historical markets
@@ -40,8 +43,8 @@ class SimulatedTrader(object):
         elif "Sell" in action:
             self.positions[symbol] -= quantity
         
-        log.info(f"{action} {quantity} shares performed at a cost of {cost}")
-        log.info(f"Position now at {self.positions[symbol]}")
+        log.info(f"{action} {fmt(quantity)} shares of {symbol} performed at a cost of {fmt(cost)}")
+        log.info(f"Position now at {fmt(self.positions[symbol])} shares on {self.current_day}")
         return cost
     
     def go_next_trading_day(self):
@@ -49,7 +52,7 @@ class SimulatedTrader(object):
         unix_off_s = (unix_off // pd.Timedelta("1s")).to_numpy()
         [ind] = np.searchsorted(MARKET_UNIX_S, unix_off_s, side='right')
         self.current_day = MARKET_DAYS[ind]
-        log.info(f"Went to next trading day {self.current_day}")
+        # log.info(f"Went to next trading day {self.current_day}")
 
     def get_price(self, symbol):
         df = self.dataFetcher.get_bars(symbol)
