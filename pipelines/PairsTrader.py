@@ -3,6 +3,7 @@ import numpy as np
 import sys
 import os
 from loguru import logger
+import statsmodels.api as sm
 from statsmodels.regression.rolling import RollingOLS
 from statsmodels.tsa.stattools import adfuller, coint
 import matplotlib.pyplot as plt
@@ -12,7 +13,7 @@ from data.utils import to_np
 class PairsTrader(object):
     def __init__(self, df_series_x: pd.DataFrame, df_series_y: pd.DataFrame):
         self.key = "Open"
-        self.window_size = 420
+        self.window_size = 210
         self.do_plots = False
         self.is_initialized = False
         self.cointegration_cutoff: float = 0.05,
@@ -23,6 +24,11 @@ class PairsTrader(object):
         self.series_y = pd.Series()
         self.spread = pd.Series()
         self.zscore_30_1 = pd.Series()
+        self.p_value_series_chart = []
+        self.series_x_chart = []
+        self.series_y_chart = []
+        self.rolling_zscore_chart = []
+
         self.rolling_zscore = pd.DataFrame()
         self.rolling_beta = pd.DataFrame()
         logger.info("Initializing PairsTrader object:")
@@ -96,16 +102,25 @@ class PairsTrader(object):
         date_start = self.df_x.index[-self.window_size]
         date_end = self.df_x.index[-1]
         # print(f"datestart: end : {date_start} : {date_end}")
-        self._check_cointegration_over_window(date_start, date_end)
+        # self._check_cointegration_over_window(date_start, date_end)
         # self.is_cointegrated_on_date(date_end)
-
-        roll_ols_model = RollingOLS(self.series_y,  self.series_x , window=self.window_size)
+        # TODO: optimization only rolling OLS on the end
+        series_x_const = sm.add_constant(self.series_x)
+        roll_ols_model = RollingOLS(self.series_y,  series_x_const , window=self.window_size)
         rolling_results = roll_ols_model.fit(params_only=True)
+        # import IPython
+        # IPython.embed()
 
         self.rolling_beta = pd.DataFrame()
         self.rolling_beta["Datetime"] = self.df_y.index.values
         self.rolling_beta["Beta"] = rolling_results.params[self.key].reset_index(drop=True)
-        spread = self.series_y - rolling_results.params[self.key] *  self.series_x 
+        spread = self.series_y - rolling_results.params['const'] - rolling_results.params[self.key] *  self.series_x 
+        adf_result = adfuller(spread.dropna())
+        p_value = adf_result[1]
+        self.p_value_series_chart.append(p_value)
+        self.series_x_chart.append(self.series_x.iloc[-1])
+        self.series_y_chart.append(self.series_y.iloc[-1])
+
         spread_mavg1 = spread.rolling(window=1).mean()
         spread_mavg30 = spread.rolling(self.window_size).mean()
         std_30 = spread.rolling(window=self.window_size).std()
@@ -116,10 +131,9 @@ class PairsTrader(object):
         self.rolling_zscore["Datetime"] = self.df_y.index.values
         self.rolling_zscore["Zscore"] = self.zscore_30_1.values
         logger.trace("Updated rolling_zscore.")
+        self.rolling_zscore_chart.append(self.rolling_zscore["Zscore"].iloc[-1])
 
     def is_cointegrated_on_date(self, date: str):
-        # import IPython
-        # IPython.embed()
         coint_data_row = self.rolling_coint[self.rolling_coint.index == date]
         if not coint_data_row.empty and coint_data_row['Cointegrated'].iloc[0]:
             return True
@@ -143,41 +157,33 @@ class PairsTrader(object):
         # print(f"after {self.rolling_coint}")
         # return np.float64(coint_output[1]) < self.cointegration_cutoff
 
+    def output_primary_charts(self):
+        plt.figure()
+        fig, ax = plt.subplots(4, figsize=(30, 15))
+        x_range = list(range(0, len(self.p_value_series_chart)))
+        ax[0].plot(x_range, self.p_value_series_chart)
+        ax[0].set_title('P-Value')
+        ax[1].plot(x_range, self.rolling_zscore_chart)
+        ax[1].set_title('rolling z scores')
+        ax[2].plot(x_range, self.series_x_chart)
+        ax[2].set_title('X series')
+        ax[3].plot(x_range, self.series_y_chart)
+        ax[3].set_title('Y series')
+        data_folder = os.path.join(".", "pipelines", "pairs_pipeline_images")
+        output_img_path = os.path.join(data_folder, f"combined-data.png")
+        plt.savefig(output_img_path)
+        plt.close()
 
 
 if __name__=="__main__":
-    base_path = '/Users/justin/algo/algo-trader/data/historical/1d$2023-01-01$2025-01-01'
-    ticker_1 = "ENPH"
-    ticker_2 = "CSIQ"
+    base_path = '/Users/justin/algo/algo-trader/data/historical/1h$2023-01-01$2024-01-03'
+    ticker_1 = "AVNT"
+    ticker_2 = "PRM"
     stock_1_path = os.path.join(base_path,ticker_1 + ".csv" )
     stock_2_path = os.path.join(base_path,ticker_2 + ".csv" )
     stock_df_1 = pd.read_csv(stock_1_path) 
     stock_df_2 = pd.read_csv(stock_2_path)
     pt = PairsTrader(stock_df_1, stock_df_2)
-    # val = pt.get_zscore("2024-12-21")
-    # beta = pt.get_beta("2024-12-21")
-    # print(f"Val before: {val}, beta before: {beta}")
-    # data_x = {
-    #     'Date': ["2024-12-21"],
-    #     "Open": 33.10,
-    #     "High": 35.3,
-    #     "Low": 31.3,
-    #     "Close": 32.55,
-    #     "Volume": 140302
-    # }
-    # data_y = {
-    #     'Date': ["2024-12-21"],
-    #     "Open": 133.10,
-    #     "High": 135.3,
-    #     "Low": 131.3,
-    #     "Close": 132.55,
-    #     "Volume": 230302
-    # }
-    # df_x_row = pd.DataFrame(data_x)
-    # df_y_row = pd.DataFrame(data_y)
-    # pt.update(df_x_row, df_y_row)
-    # val = pt.get_zscore("2024-12-21")
-    # beta = pt.get_beta("2024-12-21")
-    # print(f"Val after: {val}, beta after: {beta}")
+
 
 
