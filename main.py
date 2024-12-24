@@ -15,21 +15,23 @@ import yfinance as yf
 def run_ptp():
     # 1. Collect time series data
     data_folder = os.path.join(".", "data", "historical")
-    interval = "1d"
+    interval = "1h"
     start = "2023-01-01"
-    end = "2025-01-01"
+    end = "2024-01-03"
     # tickers = ["NVDA", "TSLA"]
     #note that the below has an example of confounding variables
     # these are tickers from solar sector
     # tickers = ['FSLR', 'ENPH', 'NXT', 'RUN', 'ARRY', 'SEDG', 'CSIQ', 'MAXN']
     tickers = yf.Industry("specialty-chemicals").top_companies.index.to_list()
     print(tickers)
-    #tickers = ['ENPH', 'CSIQ']
+    # tickers = ['ENPH', 'CSIQ']
+    tickers = ['AVNT', 'PRM']
     data_set_dict = {}
     for ticker in tickers:
         data_fetcher = utils.DataFetcher(data_folder, interval, start, end)
         df = data_fetcher.get_bars(ticker)
         arr = utils.to_np(df)
+        print(f"len: {len(df)}")
         data_set_dict[ticker] = arr
 
     # 2. Create and run a pipeline with stock set

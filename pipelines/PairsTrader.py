@@ -1,16 +1,20 @@
 import pandas as pd
 import numpy as np
+import sys
 import os
 from loguru import logger
 from statsmodels.regression.rolling import RollingOLS
+from statsmodels.tsa.stattools import adfuller, coint
 import matplotlib.pyplot as plt
 from datetime import datetime
+from data.utils import to_np
 
 class PairsTrader(object):
     def __init__(self, df_series_x: pd.DataFrame, df_series_y: pd.DataFrame):
         self.key = "Open"
-        self.window_size = 30
+        self.window_size = 210
         self.do_plots = False
+        self.rolling_coint = pd.DataFrame()
         self.df_x = pd.DataFrame()
         self.df_y = pd.DataFrame()
         self.series_x = pd.Series()
@@ -46,7 +50,7 @@ class PairsTrader(object):
         except ValueError:
             raise AssertionError(f"{date_str}")
         
-        selected_row = self.rolling_zscore[self.rolling_zscore["Date"] == date_str]
+        selected_row = self.rolling_zscore[self.rolling_zscore["Datetime"] == date_str]
         if selected_row.empty:
             logger.error(f"Selected row for {date_str} is not found!")
             return np.nan
@@ -64,7 +68,7 @@ class PairsTrader(object):
         except ValueError:
             raise AssertionError(f"{date_str}")
         
-        selected_row = self.rolling_beta[self.rolling_beta["Date"] == date_str]
+        selected_row = self.rolling_beta[self.rolling_beta["Datetime"] == date_str]
         if selected_row.empty:
             logger.error(f"Selected row for {date_str} is not found!")
             return np.nan
@@ -84,12 +88,16 @@ class PairsTrader(object):
         self.series_x = self.df_x[self.key]
         self.series_y = self.df_y[self.key]
         assert(len(self.series_y) == len(self.series_x))
-
+        self._check_cointegration_over_window("2023-01-03", "2023-02-10")
+        self._check_cointegration_over_window("2023-01-04", "2023-02-13")
+        self._check_cointegration_over_window("2023-01-05", "2023-02-14")
+        sys.exit(1)
+        # if still cointegrated then do this
         roll_ols_model = RollingOLS(self.series_y,  self.series_x , window=self.window_size)
         rolling_results = roll_ols_model.fit(params_only=True)
 
         self.rolling_beta = pd.DataFrame()
-        self.rolling_beta["Date"] = self.df_y.index.values
+        self.rolling_beta["Datetime"] = self.df_y.index.values
         self.rolling_beta["Beta"] = rolling_results.params[self.key].reset_index(drop=True)
         spread = self.series_y - rolling_results.params[self.key] *  self.series_x 
         spread_mavg1 = spread.rolling(window=1).mean()
@@ -99,9 +107,24 @@ class PairsTrader(object):
 
         #inefficient
         self.rolling_zscore = pd.DataFrame()
-        self.rolling_zscore["Date"] = self.df_y.index.values
+        self.rolling_zscore["Datetime"] = self.df_y.index.values
         self.rolling_zscore["Zscore"] = self.zscore_30_1.values
         logger.trace("Updated rolling_zscore.")
+
+    def _check_cointegration_over_window(self, date_start: str, date_end: str):
+        df_slice_x = self.df_x.loc[date_start:date_end]
+        df_slice_y = self.df_y.loc[date_start:date_end]
+
+        logger.info("Inside cointegration check")
+        series_x = df_slice_x[self.key].to_numpy()
+        series_y = df_slice_y[self.key].to_numpy()
+        # print(series_x)
+        coint_output = coint(series_x, series_y, trend='c', method='aeg', maxlag=None, autolag='aic', return_results=None)
+        col_date = df_slice_x.index[-1]
+        # coint_data_row = pd.Series({'Date': col_date, 'Pvalue': coint_output[1]})
+        print(f"{coint_output}")
+        # self.rolling_coint = pd.concat([self.rolling_coint, coint_data_row])
+
 
 
 if __name__=="__main__":

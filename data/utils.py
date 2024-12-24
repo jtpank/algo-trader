@@ -26,7 +26,8 @@ class DataFetcher(object):
     def _get_from_local(self, symbol) -> pd.DataFrame:
         log.trace(f"Getting {symbol} from local")
         file_path = os.path.join(self.data_folder, f"{symbol}.csv")
-        data = pd.read_csv(file_path, index_col="Date")
+
+        data = pd.read_csv(file_path, index_col="Datetime")
         return self._filter_history(data)
 
     def _get_from_api(self, symbol) -> pd.DataFrame | None:
@@ -56,6 +57,10 @@ class DataFetcher(object):
             return None
 
         history.index = history.index.tz_localize(None)
+        if history.index.name == "Datetime":
+            history.reset_index(inplace=True)
+            history.rename(columns={'Date': 'Datetime'}, inplace=True)
+            history.set_index("Datetime", inplace=True)
         return self._filter_history(history)
 
     def _save_history(self, symbol: str, data: pd.DataFrame):
@@ -137,10 +142,10 @@ def to_np(data: pd.DataFrame) -> np.ndarray:
     Date is in UNIX seconds, not milliseconds
     """
     copy = data.reset_index()
-    copy["Date"] = (
-        pd.to_datetime(copy["Date"]) - pd.Timestamp("1970-01-01")
+    copy["Datetime"] = (
+        pd.to_datetime(copy["Datetime"]) - pd.Timestamp("1970-01-01")
     ) // pd.Timedelta("1s")
     # Guarantee ordering
-    copy = copy[["Date", "Open", "High", "Low", "Close", "Volume"]]
+    copy = copy[["Datetime", "Open", "High", "Low", "Close", "Volume"]]
     data_np = copy.to_numpy(dtype=np.float64)
     return data_np

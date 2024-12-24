@@ -43,7 +43,7 @@ class PairsTradingPipeline(object):
         self.adf_cutoff = adf_cutoff
         self.integrator = IntegratorTypes()
         self.save_plots = False
-        self.save_res_plots = True 
+        self.save_res_plots = False 
         self.integrator_cutoff = 1  # max number of attempts to integrate
         self.cointegration_cutoff = cointegration_cutoff
         log.info(
@@ -200,7 +200,7 @@ class PairsTradingPipeline(object):
     def _zscore(self, series):
         return (series - series.mean()) / np.std(series)
 
-    def _run_moving_average_regression(self, data_y, data_x, window_size: int = 30):
+    def _run_moving_average_regression(self, data_y, data_x, window_size):
         #This is currently a moving average (simple, and prevents look ahead bias)
         #seed for reproducibility
         #TODO this needs to be understood more...
