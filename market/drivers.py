@@ -48,14 +48,14 @@ def simulate_pairs(symbolx, symboly, strategy: PairsStrategy, trader: SimulatedT
         df1_next_datetime = df1.iloc[[ind]]
         df2_next_datetime = df2.iloc[[ind]]
         pairs_analyzer.update(df1_next_datetime, df2_next_datetime)
-        if pairs_analyzer.is_cointegrated_on_date(df1_next_datetime.index[0]):
-            beta = pairs_analyzer.get_beta(datetime)
-            z_score = pairs_analyzer.get_zscore(datetime)
-            if np.isnan(beta): break
-            if fail:
-                strategy.update(z_score, beta, -1)
-            else:
-                strategy.update(z_score, -beta, 1)
+        beta = pairs_analyzer.get_beta(datetime)
+        # log.error(f"Beta: {beta}")
+        z_score = pairs_analyzer.get_zscore(datetime)
+        if np.isnan(beta): break
+        if fail:
+            strategy.update(z_score, beta, -1)
+        else:
+            strategy.update(z_score, -beta, 1)
         # strategy.update(z_score, -beta, 1)
         trader.go_next_trading_hour()
         datetime = trader.current_datetime
