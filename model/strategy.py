@@ -63,7 +63,7 @@ class PairsStrategy(object):
 
             self.buying_power += power
 
-        log.info(f"Buying power: {fmt(self.buying_power)}")
+        log.success(f"Buying power: {fmt(self.buying_power)}")
         self.has_position = False
 
 
@@ -71,12 +71,14 @@ class PairsStrategy(object):
         if self.has_position:
             if abs(z_score) < self.z_exit:
                 self._exit()
-                self.record.append([self.trader.current_day, self.buying_power])
+                self.record.append([self.trader.current_datetime, self.buying_power])
         else:
             if z_score > self.z_enter:
-                self.record.append([self.trader.current_day, self.buying_power])
+                self.record.append([self.trader.current_datetime, self.buying_power])
+                log.info(f"beta: {-coeff_stock1}")
                 self._enter(-coeff_stock1, -coeff_stock2)
             elif z_score < -self.z_enter:
-                self.record.append([self.trader.current_day, self.buying_power])
+                self.record.append([self.trader.current_datetime, self.buying_power])
+                log.info(f"beta: {-coeff_stock1}")
                 self._enter(coeff_stock1, coeff_stock2)
         
