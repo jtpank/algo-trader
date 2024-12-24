@@ -24,6 +24,7 @@ class PairsTrader(object):
         self.series_y = pd.Series()
         self.spread = pd.Series()
         self.zscore_30_1 = pd.Series()
+
         self.p_value_series_chart = []
         self.series_x_chart = []
         self.series_y_chart = []
@@ -31,13 +32,37 @@ class PairsTrader(object):
 
         self.rolling_zscore = pd.DataFrame()
         self.rolling_beta = pd.DataFrame()
+
         logger.info("Initializing PairsTrader object:")
         self._run_initialization(df_series_x, df_series_y)
         logger.info("Successfully initialized PairsTrader object.")
 
     #comput the rolling zscore from the cointegrated pair
     def _run_initialization(self, df_series_x: pd.DataFrame, df_series_y: pd.DataFrame):
-        self.update(df_series_x, df_series_y)
+        self.df_y = df_series_y
+        self.df_x = df_series_x
+        self.series_x = self.df_x[self.key]
+        self.series_y = self.df_y[self.key]
+        assert(len(self.series_y) == len(self.series_x))
+        logger.trace("Initialized df_y and df_x.")
+        series_x_const = sm.add_constant(self.series_x)
+        roll_ols_model = RollingOLS(self.series_y,  series_x_const , window=self.window_size)
+        rolling_results = roll_ols_model.fit(params_only=True)
+
+        self.rolling_beta = pd.DataFrame()
+        self.rolling_beta["Datetime"] = self.df_y.index.values
+        self.rolling_beta["Beta"] = rolling_results.params[self.key].reset_index(drop=True)
+        self.spread = self.series_y - rolling_results.params['const'] - rolling_results.params[self.key] *  self.series_x 
+
+        spread_mavg1 = self.spread.rolling(window=1).mean()
+        spread_mavg30 = self.spread.rolling(self.window_size).mean()
+        std_30 = self.spread.rolling(window=self.window_size).std()
+        self.zscore_30_1 = (spread_mavg1 - spread_mavg30)/std_30
+
+        self.rolling_zscore = pd.DataFrame()
+        self.rolling_zscore["Datetime"] = self.df_y.index.values
+        self.rolling_zscore["Zscore"] = self.zscore_30_1.values
+
         if self.do_plots:
             plt.plot(self.zscore_30_1.index, self.zscore_30_1)  # Use the index for x-values and the values for y
             plt.ylabel("zscore")
@@ -57,14 +82,12 @@ class PairsTrader(object):
             datetime.fromisoformat(date_str)
         except ValueError:
             raise AssertionError(f"{date_str}")
-    
-        selected_row = self.rolling_zscore[self.rolling_zscore["Datetime"] == date_str]
-        
-        # selected_row = self.rolling_zscore.loc[date_str]
-        if selected_row.empty:
+
+        fast_selected_row = self.rolling_zscore[self.rolling_zscore["Datetime"] == date_str]
+        if fast_selected_row.empty:
             logger.error(f"Selected row for {date_str} is not found!")
             return np.nan
-        val = selected_row["Zscore"].iloc[0]
+        val = fast_selected_row["Zscore"].iloc[0]
         return val
 
     def get_beta(self, date_str: str):
@@ -78,60 +101,44 @@ class PairsTrader(object):
         except ValueError:
             raise AssertionError(f"{date_str}")
         
-        selected_row = self.rolling_beta[self.rolling_beta["Datetime"] == date_str]
-        if selected_row.empty:
+        fast_selected_row = self.rolling_beta[self.rolling_beta["Datetime"] == date_str]
+        if fast_selected_row.empty:
             logger.error(f"Selected row for {date_str} is not found!")
             return np.nan
-        val = selected_row["Beta"].iloc[0]
+        val = fast_selected_row["Beta"].iloc[0]
         return val
     
     def update(self, data_row_x: pd.DataFrame, data_row_y: pd.DataFrame):
-        #append the data point and update the zscore
-        if not self.df_x.empty and not self.df_y.empty:
-            self.df_y = pd.concat([self.df_y, data_row_y])
-            self.df_x = pd.concat([self.df_x, data_row_x])
-            logger.trace("Updated df_y and df_x with new data.")
-        else:
-            self.df_y = data_row_y
-            self.df_x = data_row_x
-            logger.trace("Initialized df_y and df_x.")
-        self.series_x = self.df_x[self.key]
-        self.series_y = self.df_y[self.key]
+        # TODO: optimization only rolling OLS on the end
+        self.df_x = pd.concat([self.df_x, data_row_x])
+        self.df_y = pd.concat([self.df_y, data_row_y])
+
+        #FAST WAY 
+        self.series_x = self.df_x[self.key].tail(self.window_size)
+        self.series_y = self.df_y[self.key].tail(self.window_size)
+
         assert(len(self.series_y) == len(self.series_x))
 
-        date_start = self.df_x.index[-self.window_size]
-        date_end = self.df_x.index[-1]
-        # print(f"datestart: end : {date_start} : {date_end}")
-        # self._check_cointegration_over_window(date_start, date_end)
-        # self.is_cointegrated_on_date(date_end)
-        # TODO: optimization only rolling OLS on the end
         series_x_const = sm.add_constant(self.series_x)
+
         roll_ols_model = RollingOLS(self.series_y,  series_x_const , window=self.window_size)
         rolling_results = roll_ols_model.fit(params_only=True)
-        # import IPython
-        # IPython.embed()
-
         self.rolling_beta = pd.DataFrame()
         self.rolling_beta["Datetime"] = self.df_y.index.values
-        self.rolling_beta["Beta"] = rolling_results.params[self.key].reset_index(drop=True)
-        spread = self.series_y - rolling_results.params['const'] - rolling_results.params[self.key] *  self.series_x 
-        adf_result = adfuller(spread.dropna())
-        p_value = adf_result[1]
-        self.p_value_series_chart.append(p_value)
-        self.series_x_chart.append(self.series_x.iloc[-1])
-        self.series_y_chart.append(self.series_y.iloc[-1])
+        self.rolling_beta["Beta"] = rolling_results.params[self.key].tail(1).iloc[0]
+        
+        fast_temp_spread = self.series_y - rolling_results.params['const'] - rolling_results.params[self.key] *  self.series_x 
 
-        spread_mavg1 = spread.rolling(window=1).mean()
-        spread_mavg30 = spread.rolling(self.window_size).mean()
-        std_30 = spread.rolling(window=self.window_size).std()
+        self.spread = pd.concat([self.spread, fast_temp_spread.tail(1)])
+
+        spread_mavg1 = self.spread.rolling(window=1).mean()
+        spread_mavg30 = self.spread.rolling(self.window_size).mean()
+        std_30 = self.spread.rolling(window=self.window_size).std()
         self.zscore_30_1 = (spread_mavg1 - spread_mavg30)/std_30
 
-        #inefficient
         self.rolling_zscore = pd.DataFrame()
         self.rolling_zscore["Datetime"] = self.df_y.index.values
         self.rolling_zscore["Zscore"] = self.zscore_30_1.values
-        logger.trace("Updated rolling_zscore.")
-        self.rolling_zscore_chart.append(self.rolling_zscore["Zscore"].iloc[-1])
 
     def is_cointegrated_on_date(self, date: str):
         coint_data_row = self.rolling_coint[self.rolling_coint.index == date]
