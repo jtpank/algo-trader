@@ -46,21 +46,28 @@ def main():
     # run_ptp()
 
     # HWKN,ECVT;AVNT,PRM;EMN,BCPC;WLK,FUL
-    symbolx = "AVNT"
-    symboly = "PRM"
+    symboly = "AVNT"
+    symbolx = "PRM"
 
-    fig, axs = plt.subplots(1, 3, figsize=(10,5))
+    fig, axs = plt.subplots(1, 2, figsize=(10,5))
+    fetcher = utils.DataFetcher(os.path.join(".", "data", "historical"), "1h", "2023-01-01", None)
 
-    for iden, buying_power in enumerate([1000, 2000, 4000]):
-        trader = SimulatedTrader()
-        strategy = PairsStrategy(symbolx, symboly, trader, buying_power, z_enter=1, z_exit=0.5)
-        simulate_pairs(symbolx, symboly, strategy, trader)
+    for iden, z_enter in enumerate([1,2]):
+        trader = SimulatedTrader(fetcher)
+        strategy = PairsStrategy(symbolx, symboly, trader, buying_power=1000, z_enter=z_enter, z_exit=0.5)
+        error = simulate_pairs(symbolx, symboly, strategy, trader, fetcher)
+        if error:
+            continue
         [dates, capital] = list(zip(*strategy.record))
         # plt.plot(dates, capital)
         axs[iden].plot(dates, capital)
-        axs[iden].set_title(f"capital: {buying_power}")
+        axs[iden].set_title(f"z_enter: {z_enter}")
 
-    plt.show()
+    # plt.show()
+    output_img_path = f"x-{symbolx}--y-{symboly}-420-window.png"
+    plt.savefig(output_img_path)
+    plt.close()
+    log.info(f"Saving image to {output_img_path}")
 
 
 

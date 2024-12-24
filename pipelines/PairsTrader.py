@@ -12,9 +12,11 @@ from data.utils import to_np
 class PairsTrader(object):
     def __init__(self, df_series_x: pd.DataFrame, df_series_y: pd.DataFrame):
         self.key = "Open"
-        self.window_size = 210
+        self.window_size = 420
         self.do_plots = False
-        self.rolling_coint = pd.DataFrame()
+        self.is_initialized = False
+        self.cointegration_cutoff: float = 0.05,
+        self.rolling_coint = pd.DataFrame(columns=["Datetime", "Cointegrated"]).set_index("Datetime")
         self.df_x = pd.DataFrame()
         self.df_y = pd.DataFrame()
         self.series_x = pd.Series()
@@ -25,7 +27,7 @@ class PairsTrader(object):
         self.rolling_beta = pd.DataFrame()
         logger.info("Initializing PairsTrader object:")
         self._run_initialization(df_series_x, df_series_y)
-        logger.info("Successfully initialized ParisTrader object.")
+        logger.info("Successfully initialized PairsTrader object.")
 
     #comput the rolling zscore from the cointegrated pair
     def _run_initialization(self, df_series_x: pd.DataFrame, df_series_y: pd.DataFrame):
@@ -49,8 +51,10 @@ class PairsTrader(object):
             datetime.fromisoformat(date_str)
         except ValueError:
             raise AssertionError(f"{date_str}")
-        
+    
         selected_row = self.rolling_zscore[self.rolling_zscore["Datetime"] == date_str]
+        
+        # selected_row = self.rolling_zscore.loc[date_str]
         if selected_row.empty:
             logger.error(f"Selected row for {date_str} is not found!")
             return np.nan
@@ -88,11 +92,13 @@ class PairsTrader(object):
         self.series_x = self.df_x[self.key]
         self.series_y = self.df_y[self.key]
         assert(len(self.series_y) == len(self.series_x))
-        self._check_cointegration_over_window("2023-01-03", "2023-02-10")
-        self._check_cointegration_over_window("2023-01-04", "2023-02-13")
-        self._check_cointegration_over_window("2023-01-05", "2023-02-14")
-        sys.exit(1)
-        # if still cointegrated then do this
+
+        date_start = self.df_x.index[-self.window_size]
+        date_end = self.df_x.index[-1]
+        # print(f"datestart: end : {date_start} : {date_end}")
+        self._check_cointegration_over_window(date_start, date_end)
+        # self.is_cointegrated_on_date(date_end)
+
         roll_ols_model = RollingOLS(self.series_y,  self.series_x , window=self.window_size)
         rolling_results = roll_ols_model.fit(params_only=True)
 
@@ -111,19 +117,31 @@ class PairsTrader(object):
         self.rolling_zscore["Zscore"] = self.zscore_30_1.values
         logger.trace("Updated rolling_zscore.")
 
+    def is_cointegrated_on_date(self, date: str):
+        # import IPython
+        # IPython.embed()
+        coint_data_row = self.rolling_coint[self.rolling_coint.index == date]
+        if not coint_data_row.empty and coint_data_row['Cointegrated'].iloc[0]:
+            return True
+        return False
+
+
     def _check_cointegration_over_window(self, date_start: str, date_end: str):
         df_slice_x = self.df_x.loc[date_start:date_end]
         df_slice_y = self.df_y.loc[date_start:date_end]
 
-        logger.info("Inside cointegration check")
+        # logger.info("Inside cointegration check")
         series_x = df_slice_x[self.key].to_numpy()
         series_y = df_slice_y[self.key].to_numpy()
-        # print(series_x)
         coint_output = coint(series_x, series_y, trend='c', method='aeg', maxlag=None, autolag='aic', return_results=None)
         col_date = df_slice_x.index[-1]
-        # coint_data_row = pd.Series({'Date': col_date, 'Pvalue': coint_output[1]})
-        print(f"{coint_output}")
-        # self.rolling_coint = pd.concat([self.rolling_coint, coint_data_row])
+        bool_val = np.float64(coint_output[1]) < self.cointegration_cutoff
+        self.rolling_coint.loc[col_date] = {'Cointegrated' : bool_val}
+        # coint_data_row = pd.Series({'Datetime': col_date, 'Cointegrated': bool_val})
+        # print(f"before: {self.rolling_coint}")
+        # self.rolling_coint = pd.concat([self.rolling_coint, coint_data_row])c
+        # print(f"after {self.rolling_coint}")
+        # return np.float64(coint_output[1]) < self.cointegration_cutoff
 
 
 
