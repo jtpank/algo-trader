@@ -100,6 +100,14 @@ class DataFetcher(object):
 
         Returns the list of symbols successfully downloaded
         """
+        # Only download files you don't already have
+        all_files = os.listdir(self.data_folder)
+        existing_symbols = [f.split(".csv")[0] for f in all_files if f.endswith(".csv")]
+        symbols = [f for f in symbols if f not in existing_symbols]
+        if len(symbols) == 0:
+            log.trace("Already have all symbols...no download")
+            return
+
         log.trace(f"Downloading {symbols}")
         histories = yf.download(
             symbols,
