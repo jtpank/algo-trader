@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 from loguru import logger as log
+import yfinance as yf
 
 ALLOWED_POSITIVE_ACTIONS = ["Buy", "Sell"]
 ALLOWED_NEGATIVE_ACTIONS = ["Buy to Cover", "Sell Short"]
@@ -70,3 +71,18 @@ class SimulatedTrader(object):
         
         bar = df.loc[self.current_day]
         return bar[self.trade_on]
+    
+def get_market_info():
+    fetcher = utils.DataFetcher(os.path.join(".", "data", "historical"), "1h", "2023-01-01", None)
+    top_companies = yf.Sector("basic-materials").top_companies.index.to_list()
+    # fetcher.bulk_download(top_companies)
+    total = set()
+    for symbol in top_companies:
+        df = fetcher.get_bars(symbol)
+        new_dates = set(df.index.to_list())
+        total.update(new_dates)
+    
+    sorted_datetimes = list(total)
+    sorted_datetimes.sort()
+    df = pd.DataFrame(sorted_datetimes, columns=["market_datetimes"])
+    df.to_csv(os.path.join(".", "market", "info.csv"))
