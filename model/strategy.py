@@ -23,6 +23,8 @@ class PairsStrategy(object):
         self.z_exit = z_exit
         self.has_position = False
         self.record = []
+        self.max_dd_pct = 100
+        self.continue_trading = True
 
     def _enter(self, coeff_stock1, coeff_stock2):
         assert not self.has_position
@@ -66,12 +68,39 @@ class PairsStrategy(object):
         log.success(f"Buying power: {fmt(self.buying_power)}")
         self.has_position = False
 
+    def _realized_on_exit(self):
+        assert self.has_position
+        total_power = 0
+        for symbol in [self.symbol1, self.symbol2]:
+            pos = self.trader.positions.get(symbol, 0)
+            assert abs(pos) > 0
+            action = "Buy to Cover" if pos < 0 else "Sell"
+            cost = self.trader.get_price(symbol) * abs(pos)
+            power = cost
+
+            if action == "Buy to Cover":
+                power = 2 * self.short_bank[symbol] - cost
+
+            total_power += power
+        
+        return total_power
 
     def update(self, z_score, coeff_stock1, coeff_stock2):
+        if not self.continue_trading: return
+
         if self.has_position:
             if abs(z_score) < self.z_exit:
                 self._exit()
                 self.record.append([self.trader.current_datetime, self.buying_power])
+                return
+            
+            # log.warning(f"On exit costs: {self._realized_on_exit()}")
+            pct_change = ((self._realized_on_exit()/self.capital_per_trade) - 1) * 100
+            if pct_change < 0 and abs(pct_change) > self.max_dd_pct:
+                self._exit()
+                self.record.append([self.trader.current_datetime, self.buying_power])
+                self.continue_trading = False
+            
         else:
             if z_score > self.z_enter:
                 self.record.append([self.trader.current_datetime, self.buying_power])

@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from loguru import logger as log
 import yfinance as yf
+from datetime import datetime
 
 ALLOWED_POSITIVE_ACTIONS = ["Buy", "Sell"]
 ALLOWED_NEGATIVE_ACTIONS = ["Buy to Cover", "Sell Short"]
@@ -18,12 +19,16 @@ class SimulatedTrader(object):
     """
     Simulates market trades on historical markets
     """
-    def __init__(self, fetcher: utils.DataFetcher, current_datetime="2023-01-03 09:30:00", trade_on="Open"):
+    def __init__(self, fetcher: utils.DataFetcher, current_datetime, trade_on="Open"):
         self.current_datetime = current_datetime
         self.positions = dict()
         self.trade_on = trade_on
         self.fetcher = fetcher
         self.interval = self.fetcher.interval
+        if self.fetcher.end is None:
+            self.last_datetime = MARKET_DATETIMES[-1]
+        else:
+            self.last_datetime = datetime.strptime(self.fetcher.end, '%Y-%m-%d')
     
     def trade(self, symbol, action, quantity):
         assert action in ALLOWED_ACTIONS
@@ -54,6 +59,10 @@ class SimulatedTrader(object):
         [ind] = np.searchsorted(MARKET_UNIX_S, unix_off_s, side='right')
         if ind >= len(MARKET_DATETIMES):
             log.warning(f"No market bars marked for next timestep following {self.current_datetime}") 
+            self.current_datetime = None
+            return
+        elif datetime.strptime(MARKET_DATETIMES[ind], '%Y-%m-%d %H:%M:%S') >= self.last_datetime:
+            log.warning(f"Limited market view")
             self.current_datetime = None
             return
         self.current_datetime = MARKET_DATETIMES[ind]

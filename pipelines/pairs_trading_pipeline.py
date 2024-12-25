@@ -67,13 +67,15 @@ class PairsTradingPipeline(object):
         #TODO need to look for confounding! ( x coint y) and ( z coint y) therefore x is really coint with z
         assert len(self.stationarity_set) > 0
         self._find_cointegrated_pairs()
-        assert len(self.cointegrated_pairs_set) > 0
+        if len(self.cointegrated_pairs_set) == 0:
+            return []
         self._remove_confounding_pairs()
 
-        first_pair = list(self.cointegrated_pairs_set)[0]
-        data_y = self.cleaned_data_set[first_pair[0]]
-        data_x = self.cleaned_data_set[first_pair[1]]
-        self._run_ols_and_plot_residuals(data_y, data_x, first_pair[0], first_pair[1])
+        return list(self.cointegrated_pairs_set)
+        # first_pair = list(self.cointegrated_pairs_set)[0]
+        # data_y = self.cleaned_data_set[first_pair[0]]
+        # data_x = self.cleaned_data_set[first_pair[1]]
+        # self._run_ols_and_plot_residuals(data_y, data_x, first_pair[0], first_pair[1])
         #self._run_moving_average_regression(data_y, data_x)
 
     def _clean_data(self):
@@ -122,8 +124,10 @@ class PairsTradingPipeline(object):
                 coint_output = coint(y0, y1, trend='c', method='aeg', maxlag=None, autolag='aic', return_results=None)
                 coint_pvalue = coint_output[1]
                 if coint_pvalue < self.cointegration_cutoff:
-                    log.info(f"Found cointegrated pair! {pair}, pvalue: {coint_pvalue}")
+                    # log.error(f"Found cointegrated pair! {pair}, pvalue: {coint_pvalue}, tstat: {coint_output[0]}")
+                    log.error(f"Found cointegrated pair! {pair}, coint_out: {coint_output}")
                     self.cointegrated_pairs_set.add(pair)
+                    log.warning(self.cointegrated_pairs_set)
             else:
                 log.error(f'Incompatible lengths of time series: {pair[0]} : {len(y0)} vs {pair[1]} : {len(y1)}')
 

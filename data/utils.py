@@ -4,7 +4,21 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 from loguru import logger as log
+from datetime import datetime
 
+def _convert_to_datetime_unix(datetimes):
+    timestamp_start = "1970-01-01"
+    # Dirty check for "%Y-%m-%d %H:%M:%S"
+    if len(datetimes[0]) == 17:
+        timestamp_start += " 00:00:00"
+    return ((pd.to_datetime(datetimes) - pd.Timestamp(timestamp_start)) // pd.Timedelta("1s")).to_numpy()
+
+def find_nearest_indices(datetimes_to_insert, datetimes):
+    insert_unix_s = _convert_to_datetime_unix(datetimes_to_insert)
+    dt_unix_s = _convert_to_datetime_unix(datetimes)
+    inds = np.searchsorted(dt_unix_s, insert_unix_s, side='left')
+    return inds
+    
 
 class DataFetcher(object):
     """
@@ -27,8 +41,23 @@ class DataFetcher(object):
         log.trace(f"Getting {symbol} from local")
         file_path = os.path.join(self.data_folder, f"{symbol}.csv")
 
-        data = pd.read_csv(file_path, index_col="Datetime")
+        data = pd.read_csv(file_path)
+        data = data.rename(columns={data.columns[0]: 'Datetime'}) 
+        data.set_index("Datetime", inplace=True)
         return self._filter_history(data)
+    
+    def _get_from_local_adj(self, symbol, folder) -> pd.DataFrame:
+        log.trace(f"Getting {symbol} from local adjacent folder {folder}")
+        file_path = os.path.join(folder, f"{symbol}.csv")
+
+        data = pd.read_csv(file_path)
+        data = data.rename(columns={data.columns[0]: 'Datetime'}) 
+        data.set_index("Datetime", inplace=True)
+
+        [ind_start, ind_end] = find_nearest_indices([self.start, self.end], data.index)
+        data = data.iloc[ind_start:ind_end]
+        return self._filter_history(data)
+
 
     def _get_from_api(self, symbol) -> pd.DataFrame | None:
         log.trace(f"Getting {symbol} from api")
@@ -77,13 +106,46 @@ class DataFetcher(object):
         csv_files = [f for f in files if f.endswith(".csv")]
         csv_symbols = [f[:-4] for f in csv_files]
         return symbol in csv_symbols
+    
+    def _adjacent_folder_with_symbol(self, symbol):
+        parent_data_folder = os.path.dirname(self.data_folder)
+        all_adjacent_folders = os.listdir(parent_data_folder)
+        
+        # Can look in folders if they have the same interval and broader (or equal) timeframe
+        compatible_adj_folders = []
+        my_start = datetime.strptime(self.start, "%Y-%m-%d")
+        my_end = datetime.strptime(self.end, "%Y-%m-%d")
+        for folder in all_adjacent_folders:
+            assert len(folder.split("$")) == 3
+            [interval, start, end] = folder.split("$")
+            assert start != "None"
+            if end == "None": continue
+            elif interval != self.interval: continue
+            start_time = datetime.strptime(start, "%Y-%m-%d")
+            end_time = datetime.strptime(end, "%Y-%m-%d")
+            if start_time <= my_start and end_time >= my_end:
+                compatible_adj_folders.append(folder)
+        
+        for folder in compatible_adj_folders:
+            folder_path = os.path.join(parent_data_folder, folder)
+            files = os.listdir(folder_path)
+            csv_files = [f for f in files if f.endswith(".csv")]
+            csv_symbols = [f[:-4] for f in csv_files]
+            if symbol in csv_symbols:
+                return folder_path
+        
+        return None
+        
 
     def get_bars(self, symbol) -> pd.DataFrame | None:
         """
         Gets the data for the given symbol and timeframe
         """
+        adj_folder = self._adjacent_folder_with_symbol(symbol)
         if self._has_symbol(symbol):
             history = self._get_from_local(symbol)
+        elif adj_folder is not None:
+            history = self._get_from_local_adj(symbol, adj_folder)
         else:
             history = self._get_from_api(symbol)
             if history is None:
@@ -100,6 +162,14 @@ class DataFetcher(object):
 
         Returns the list of symbols successfully downloaded
         """
+        # Only download files you don't already have
+        all_files = os.listdir(self.data_folder)
+        existing_symbols = [f.split(".csv")[0] for f in all_files if f.endswith(".csv")]
+        symbols = [f for f in symbols if f not in existing_symbols]
+        if len(symbols) == 0:
+            log.trace("Already have all symbols...no download")
+            return
+        
         log.trace(f"Downloading {symbols}")
         histories = yf.download(
             symbols,
