@@ -67,12 +67,13 @@ class Portfolio(object):
             log.trace(f"Industry: {industry}")
             data_dict = dict()
             for symbol in top_tickers:
+                log.info(f"{symbol}")
                 df = self.fetcher.get_bars(symbol)
                 if len(df[df.isna().any(axis=1)]):
                     log.warning(f"Symbol {symbol} has na...skipping")
                     continue
                 elif "2024-10-01 09:30:00" not in df.index.to_list():
-                    log.warning(f"Not right cutoff...skipping")
+                    log.warning(f"Not right cutoff for {symbol}...skipping")
                     continue
                 df = df.loc[:"2024-10-01 09:30:00"]
                 data_dict[symbol] = df.to_numpy()
@@ -90,4 +91,4 @@ class Portfolio(object):
         print(all_pairs)
         return all_pairs
 
-pairs = [('T', 'FYBR'), ('YUM', 'SHAK'), ('EAT', 'CAKE'), ('PAG', 'CARG'), ('CVNA', 'AN'), ('PAG', 'SAH'), ('HGV', 'PLYA'), ('CZR', 'GDEN'), ('COLM', 'KTB'), ('ROL', 'SCI'), ('MKC', 'CAG'), ('GIS', 'LWAY'), ('BRBR', 'UTZ'), ('MKC', 'CPB'), ('DINO', 'DK'), ('NDAQ', 'TRU'), ('PEN', 'FNA'), ('QDEL', 'AHCO'), ('INMD', 'FNA'), ('CI', 'HUM'), ('ELV', 'OSCR'), ('IMVT', 'ACAD'), ('RPRX', 'BHVN'), ('RVMD', 'RNA'), ('SMMT', 'PCVX'), ('SMMT', 'ADMA'), ('RVMD', 'CRNX'), ('NUVL', 'ACLX'), ('CORT', 'DNLI'), ('SRPT', 'MRUS'), ('UTHR', 'HALO'), ('LH', 'SHC'), ('ICLR', 'MEDP'), ('ISRG', 'BLFS'), ('RMD', 'BLFS'), ('GD', 'ACHR'), ('GE', 'GD'), ('TDG', 'GD'), ('AOS', 'FELE'), ('DOV', 'FLS'), ('AOS', 'MIR'), ('RRX', 'FELE'), ('DCI', 'GTES'), ('IR', 'FELE'), ('CXT', 'TNC'), ('CSL', 'APOG'), ('CMPR', 'SPIR'), ('CTAS', 'ARMK'), ('GATX', 'CAR'), ('AEIS', 'ENS'), ('HAYW', 'POWL'), ('WERN', 'MRTN'), ('NNN', 'FCPT'), ('ADC', 'KRG'), ('O', 'ROIC'), ('KIM', 'ROIC'), ('AVB', 'CPT'), ('EQR', 'CPT'), ('AMH', 'IRT'), ('AMH', 'UMH'), ('AMH', 'VRE'), ('INVH', 'AIV'), ('AMH', 'CPT'), ('WELL', 'CTRE'), ('EPRT', 'GOOD'), ('RHP', 'SHO'), ('MSFT', 'ALTR'), ('IT', 'BR'), ('MSI', 'BDC'), ('CAMT', 'VECO'), ('ANET', 'STX'), ('DELL', 'WDC'), ('JBL', 'DAKT'), ('FE', 'EVRG'), ('PPL', 'EVRG'), ('PCG', 'NWE'), ('EIX', 'CMS'), ('D', 'PPL'), ('EIX', 'EVRG'), ('FE', 'CMS'), ('EIX', 'FE'), ('PPL', 'CMS'), ('CMS', 'ETR'), ('NWN', 'SPH'), ('NJR', 'BKH'), ('NI', 'NFE'), ('NJR', 'SR')]
+# pairs = [('T', 'FYBR'), ('YUM', 'SHAK'), ('EAT', 'CAKE'), ('PAG', 'CARG'), ('CVNA', 'AN'), ('PAG', 'SAH'), ('HGV', 'PLYA'), ('CZR', 'GDEN'), ('COLM', 'KTB'), ('ROL', 'SCI'), ('MKC', 'CAG'), ('GIS', 'LWAY'), ('BRBR', 'UTZ'), ('MKC', 'CPB'), ('DINO', 'DK'), ('NDAQ', 'TRU'), ('PEN', 'FNA'), ('QDEL', 'AHCO'), ('INMD', 'FNA'), ('CI', 'HUM'), ('ELV', 'OSCR'), ('IMVT', 'ACAD'), ('RPRX', 'BHVN'), ('RVMD', 'RNA'), ('SMMT', 'PCVX'), ('SMMT', 'ADMA'), ('RVMD', 'CRNX'), ('NUVL', 'ACLX'), ('CORT', 'DNLI'), ('SRPT', 'MRUS'), ('UTHR', 'HALO'), ('LH', 'SHC'), ('ICLR', 'MEDP'), ('ISRG', 'BLFS'), ('RMD', 'BLFS'), ('GD', 'ACHR'), ('GE', 'GD'), ('TDG', 'GD'), ('AOS', 'FELE'), ('DOV', 'FLS'), ('AOS', 'MIR'), ('RRX', 'FELE'), ('DCI', 'GTES'), ('IR', 'FELE'), ('CXT', 'TNC'), ('CSL', 'APOG'), ('CMPR', 'SPIR'), ('CTAS', 'ARMK'), ('GATX', 'CAR'), ('AEIS', 'ENS'), ('HAYW', 'POWL'), ('WERN', 'MRTN'), ('NNN', 'FCPT'), ('ADC', 'KRG'), ('O', 'ROIC'), ('KIM', 'ROIC'), ('AVB', 'CPT'), ('EQR', 'CPT'), ('AMH', 'IRT'), ('AMH', 'UMH'), ('AMH', 'VRE'), ('INVH', 'AIV'), ('AMH', 'CPT'), ('WELL', 'CTRE'), ('EPRT', 'GOOD'), ('RHP', 'SHO'), ('MSFT', 'ALTR'), ('IT', 'BR'), ('MSI', 'BDC'), ('CAMT', 'VECO'), ('ANET', 'STX'), ('DELL', 'WDC'), ('JBL', 'DAKT'), ('FE', 'EVRG'), ('PPL', 'EVRG'), ('PCG', 'NWE'), ('EIX', 'CMS'), ('D', 'PPL'), ('EIX', 'EVRG'), ('FE', 'CMS'), ('EIX', 'FE'), ('PPL', 'CMS'), ('CMS', 'ETR'), ('NWN', 'SPH'), ('NJR', 'BKH'), ('NI', 'NFE'), ('NJR', 'SR')]

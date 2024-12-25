@@ -124,7 +124,8 @@ class PairsTradingPipeline(object):
                 coint_output = coint(y0, y1, trend='c', method='aeg', maxlag=None, autolag='aic', return_results=None)
                 coint_pvalue = coint_output[1]
                 if coint_pvalue < self.cointegration_cutoff:
-                    log.info(f"Found cointegrated pair! {pair}, pvalue: {coint_pvalue}")
+                    # log.error(f"Found cointegrated pair! {pair}, pvalue: {coint_pvalue}, tstat: {coint_output[0]}")
+                    log.error(f"Found cointegrated pair! {pair}, coint_out: {coint_output}")
                     self.cointegrated_pairs_set.add(pair)
                     log.warning(self.cointegrated_pairs_set)
             else:
