@@ -6,7 +6,7 @@ import os
 import sys
 import yfinance as yf
 import pickle
-from typing import Dict
+from typing import Dict, List
 
 ALL_SECTORS = [
     "basic-materials",
@@ -22,6 +22,12 @@ ALL_SECTORS = [
     "utilities",
 ]
 MIN_MARKET_WEIGHT = 0.001
+
+def get_industries_tickers() -> Dict[str, List[str]]:
+    industries_file = os.path.join(".", "market", "industries.pkl")
+    with open(industries_file, "rb") as f:
+        industries = pickle.load(f)
+        return industries
 
 class Portfolio(object):
     

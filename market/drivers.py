@@ -1,9 +1,10 @@
 from market.traders import SimulatedTrader
-from model.strategy import PairsStrategy
+from model.strategy import PairsStrategy, DSStrategy
 from data.utils import DataFetcher
 from pipelines.PairsTrader import PairsTraderStatic
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import os
 import sys
 from loguru import logger as log
@@ -111,3 +112,32 @@ class PairsDriver(object):
             # strategy.update(z_score, -beta, 1)
             self.trader.go_next_trading_hour()
             datetime = self.trader.current_datetime
+
+class DSDriver(object):
+    def __init__(self, symbol, strategy: DSStrategy, trader: SimulatedTrader, fetcher: DataFetcher):
+        self.symbol = symbol
+        self.strategy = strategy
+        self.trader = trader
+        self.fetcher = fetcher
+    
+    def simulate(self):
+        df = self.fetcher.get_bars(self.symbol)
+        if df is None: return True
+
+        # No "Test" needed for this driver
+        error = self.livetest(df)
+        if error: return error
+
+    def livetest(self, data: pd.DataFrame):
+        last_datetime = data.index[-1]
+        datetime = self.trader.current_datetime
+        while datetime != last_datetime:
+            assert datetime is not None
+            error = self.strategy.update()
+            if error: return error
+            self.trader.go_next_trading_hour()
+            datetime = self.trader.current_datetime
+            if self.trader._get_next_trading_hour() is None:
+                break
+
+        self.strategy.exit()
