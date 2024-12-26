@@ -53,19 +53,21 @@ class SimulatedTrader(object):
         log.info(f"Position now at {fmt(self.positions[symbol])} shares at {self.current_datetime}")
         return cost
 
-    def go_next_trading_hour(self):
+    def _get_next_trading_hour(self):
         unix_off = pd.to_datetime([self.current_datetime]) - pd.Timestamp("1970-01-01")
         unix_off_s = (unix_off // pd.Timedelta("1s")).to_numpy()
         [ind] = np.searchsorted(MARKET_UNIX_S, unix_off_s, side='right')
         if ind >= len(MARKET_DATETIMES):
             log.warning(f"No market bars marked for next timestep following {self.current_datetime}") 
-            self.current_datetime = None
-            return
+            return None
         elif datetime.strptime(MARKET_DATETIMES[ind], '%Y-%m-%d %H:%M:%S') >= self.last_datetime:
             log.warning(f"Limited market view")
-            self.current_datetime = None
-            return
-        self.current_datetime = MARKET_DATETIMES[ind]
+            return None
+
+        return MARKET_DATETIMES[ind]
+
+    def go_next_trading_hour(self):
+        self.current_datetime = self._get_next_trading_hour()
     
     def go_next_trading_day(self):
         unix_off = pd.to_datetime([self.current_datetime]) - pd.Timestamp("1970-01-01")

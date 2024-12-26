@@ -111,3 +111,38 @@ class PairsStrategy(object):
                 log.info(f"beta: {-coeff_stock1}")
                 self._enter(coeff_stock1, coeff_stock2)
         
+class DSStrategy(object):
+    def __init__(self, symbol, trader: SimulatedTrader, buying_power, update_interval=10, num_intervals=10):
+        self.symbol = symbol
+        self.trader = trader
+        self.buying_power = buying_power
+        self.update_interval = update_interval
+        self.num_intervals = num_intervals
+        self.capital_per_trade = buying_power / num_intervals
+        self.record = [[self.trader.current_datetime, self.buying_power]]
+        self.current_interval = update_interval
+
+    def _enter(self):
+        price = self.trader.get_price(self.symbol)
+        if price is None:
+            return True
+        quantity = self.capital_per_trade / price
+        cost = self.trader.trade(self.symbol, "Buy", quantity)
+        self.buying_power -= cost
+
+        log.info(f"Buying power remaining: {fmt(self.buying_power)}")
+
+    def update(self):
+        if self.current_interval < self.update_interval:
+            self.current_interval += 1
+            return
+        self.current_interval = 1
+        
+        error = self._enter()
+        if error: return error
+
+    def exit(self):
+        quantity = self.trader.positions[self.symbol]
+        total = self.trader.trade(self.symbol, "Sell", quantity)
+        self.buying_power += total
+        self.record.append([self.trader.current_datetime, self.buying_power])
