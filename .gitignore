@@ -2,3 +2,7 @@ poetry.lock
 __pycache__/
 data/historical
 *.png
+
+api_js/cvna_filings
+api_js/node_modules
+api_js/secrets.json
