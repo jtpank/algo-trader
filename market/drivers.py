@@ -1,7 +1,7 @@
 from market.traders import SimulatedTrader
 from model.strategy import PairsStrategy
 from data.utils import DataFetcher
-from pipelines.PairsTrader import PairsTraderStatic
+from pipelines.PairsTrader import PairsTrader
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -33,7 +33,7 @@ class PairsDriver(object):
         # Only introduce the 'test' section of the data
         df1_known = df1.loc[:self.start_datetime]
         df2_known = df2.loc[:self.start_datetime]
-        pairs_analyzer = PairsTraderStatic(df1_known, df2_known)
+        pairs_analyzer = PairsTrader(df1_known, df2_known)
 
         sharpe_ratio, max_dd_pct = self.backtest(pairs_analyzer)
         self.sharpe_ratio = sharpe_ratio
@@ -43,7 +43,7 @@ class PairsDriver(object):
         self.livetest(pairs_analyzer)
 
 
-    def backtest(self, pairs_analyzer: PairsTraderStatic):
+    def backtest(self, pairs_analyzer: PairsTrader):
         # Find the first z_score to start backtesting
         while True:
             self.trader.go_next_trading_hour()
@@ -63,6 +63,8 @@ class PairsDriver(object):
             self.trader.go_next_trading_hour()
             datetime = self.trader.current_datetime
         
+        if len(self.strategy.record) == 0:
+            return np.nan, np.nan
         [dates, capital] = list(zip(*self.strategy.record))
         capital = np.array(capital[::2])
         # for i in range(len(capital)): print(f"capital: {capital[i]}")
@@ -94,7 +96,7 @@ class PairsDriver(object):
         return sharpe_ratio, max_dd_pct
 
 
-    def livetest(self, pairs_analyzer: PairsTraderStatic):
+    def livetest(self, pairs_analyzer: PairsTrader):
         df1 = self.fetcher.get_bars(self.symbolx)
         df2 = self.fetcher.get_bars(self.symboly)
         datetime = self.start_datetime

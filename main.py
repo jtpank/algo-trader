@@ -53,11 +53,13 @@ def main():
     # portfolio.find_pairs()
     
 
-
-    fetcher = utils.DataFetcher(os.path.join(".", "data", "historical"), "1h", "2024-06-03", "2024-11-01")
-    pairs = [('T', 'FYBR'), ('YUM', 'SHAK'), ('EAT', 'CAKE'), ('PAG', 'CARG'), ('CVNA', 'AN'), ('PAG', 'SAH'), ('HGV', 'PLYA'), ('CZR', 'GDEN'), ('COLM', 'KTB'), ('ROL', 'SCI'), ('MKC', 'CAG'), ('GIS', 'LWAY'), ('BRBR', 'UTZ'), ('MKC', 'CPB'), ('DINO', 'DK'), ('NDAQ', 'TRU'), ('PEN', 'FNA'), ('QDEL', 'AHCO'), ('INMD', 'FNA'), ('CI', 'HUM'), ('ELV', 'OSCR'), ('IMVT', 'ACAD'), ('RPRX', 'BHVN'), ('RVMD', 'RNA'), ('SMMT', 'PCVX'), ('SMMT', 'ADMA'), ('RVMD', 'CRNX'), ('NUVL', 'ACLX'), ('CORT', 'DNLI'), ('SRPT', 'MRUS'), ('UTHR', 'HALO'), ('LH', 'SHC'), ('ICLR', 'MEDP'), ('ISRG', 'BLFS'), ('RMD', 'BLFS'), ('GD', 'ACHR'), ('GE', 'GD'), ('TDG', 'GD'), ('AOS', 'FELE'), ('DOV', 'FLS'), ('AOS', 'MIR'), ('RRX', 'FELE'), ('DCI', 'GTES'), ('IR', 'FELE'), ('CXT', 'TNC'), ('CSL', 'APOG'), ('CMPR', 'SPIR'), ('CTAS', 'ARMK'), ('GATX', 'CAR'), ('AEIS', 'ENS'), ('HAYW', 'POWL'), ('WERN', 'MRTN'), ('NNN', 'FCPT'), ('ADC', 'KRG'), ('O', 'ROIC'), ('KIM', 'ROIC'), ('AVB', 'CPT'), ('EQR', 'CPT'), ('AMH', 'IRT'), ('AMH', 'UMH'), ('AMH', 'VRE'), ('INVH', 'AIV'), ('AMH', 'CPT'), ('WELL', 'CTRE'), ('EPRT', 'GOOD'), ('RHP', 'SHO'), ('MSFT', 'ALTR'), ('IT', 'BR'), ('MSI', 'BDC'), ('CAMT', 'VECO'), ('ANET', 'STX'), ('DELL', 'WDC'), ('JBL', 'DAKT'), ('FE', 'EVRG'), ('PPL', 'EVRG'), ('PCG', 'NWE'), ('EIX', 'CMS'), ('D', 'PPL'), ('EIX', 'EVRG'), ('FE', 'CMS'), ('EIX', 'FE'), ('PPL', 'CMS'), ('CMS', 'ETR'), ('NWN', 'SPH'), ('NJR', 'BKH'), ('NI', 'NFE'), ('NJR', 'SR')]
+    input_data_start_date = "2023-10-01"
+    input_data_end_date =  "2024-12-24"
+    live_test_start_date = "2024-10-01"
+    fetcher = utils.DataFetcher(os.path.join(".", "data", "historical"), "1h", input_data_start_date, input_data_end_date)
+    # pairs = [('T', 'FYBR'), ('YUM', 'SHAK'), ('EAT', 'CAKE'), ('PAG', 'CARG'), ('CVNA', 'AN'), ('PAG', 'SAH'), ('HGV', 'PLYA'), ('CZR', 'GDEN'), ('COLM', 'KTB'), ('ROL', 'SCI'), ('MKC', 'CAG'), ('GIS', 'LWAY'), ('BRBR', 'UTZ'), ('MKC', 'CPB'), ('DINO', 'DK'), ('NDAQ', 'TRU'), ('PEN', 'FNA'), ('QDEL', 'AHCO'), ('INMD', 'FNA'), ('CI', 'HUM'), ('ELV', 'OSCR'), ('IMVT', 'ACAD'), ('RPRX', 'BHVN'), ('RVMD', 'RNA'), ('SMMT', 'PCVX'), ('SMMT', 'ADMA'), ('RVMD', 'CRNX'), ('NUVL', 'ACLX'), ('CORT', 'DNLI'), ('SRPT', 'MRUS'), ('UTHR', 'HALO'), ('LH', 'SHC'), ('ICLR', 'MEDP'), ('ISRG', 'BLFS'), ('RMD', 'BLFS'), ('GD', 'ACHR'), ('GE', 'GD'), ('TDG', 'GD'), ('AOS', 'FELE'), ('DOV', 'FLS'), ('AOS', 'MIR'), ('RRX', 'FELE'), ('DCI', 'GTES'), ('IR', 'FELE'), ('CXT', 'TNC'), ('CSL', 'APOG'), ('CMPR', 'SPIR'), ('CTAS', 'ARMK'), ('GATX', 'CAR'), ('AEIS', 'ENS'), ('HAYW', 'POWL'), ('WERN', 'MRTN'), ('NNN', 'FCPT'), ('ADC', 'KRG'), ('O', 'ROIC'), ('KIM', 'ROIC'), ('AVB', 'CPT'), ('EQR', 'CPT'), ('AMH', 'IRT'), ('AMH', 'UMH'), ('AMH', 'VRE'), ('INVH', 'AIV'), ('AMH', 'CPT'), ('WELL', 'CTRE'), ('EPRT', 'GOOD'), ('RHP', 'SHO'), ('MSFT', 'ALTR'), ('IT', 'BR'), ('MSI', 'BDC'), ('CAMT', 'VECO'), ('ANET', 'STX'), ('DELL', 'WDC'), ('JBL', 'DAKT'), ('FE', 'EVRG'), ('PPL', 'EVRG'), ('PCG', 'NWE'), ('EIX', 'CMS'), ('D', 'PPL'), ('EIX', 'EVRG'), ('FE', 'CMS'), ('EIX', 'FE'), ('PPL', 'CMS'), ('CMS', 'ETR'), ('NWN', 'SPH'), ('NJR', 'BKH'), ('NI', 'NFE'), ('NJR', 'SR')]
     # pairs = [('YUM', 'SHAK'),('EAT', 'CAKE'), ('INMD', 'FNA')]
-    # pairs = [('T', 'FYBR'), ('INMD', 'FNA')]
+    pairs = [('D', 'PPL')]
     zs = [
         [0, 0],
         [0, 0],
@@ -67,17 +69,17 @@ def main():
         symbolx = pair[0]
         symboly = pair[1]
         fig, axs = plt.subplots(1, 2, figsize=(10,5))
-        for iden, z_enter in enumerate([1,2]):
+        for iden, z_enter in enumerate([1.5,3]):
             # if iden == 1:
             #     break
-            trader = SimulatedTrader(fetcher, "2024-06-03 09:30:00")
+            trader = SimulatedTrader(fetcher, input_data_start_date + " 09:30:00")
             strategy = PairsStrategy(symbolx, symboly, trader, buying_power=1000, z_enter=z_enter, z_exit=0.5)
-            pairs_driver = PairsDriver(symbolx, symboly,  "2024-10-01 09:30:00", strategy, trader, fetcher)
+            pairs_driver = PairsDriver(symbolx, symboly,  live_test_start_date + " 09:30:00", strategy, trader, fetcher)
             error = pairs_driver.simulate()
             if error:
                 continue
 
-            bound_date = datetime.strptime("2024-10-01 09:30:00", '%Y-%m-%d %H:%M:%S')
+            bound_date = datetime.strptime(live_test_start_date + " 09:30:00", '%Y-%m-%d %H:%M:%S')
             # selected_date = datetime.strptime(date[i], '%Y-%m-%d %H:%M:%S')
             [all_dates, all_capital] = list(zip(*strategy.record))
             recs = [d for d in strategy.record if datetime.strptime(d[0], '%Y-%m-%d %H:%M:%S') > bound_date]
@@ -117,34 +119,34 @@ if __name__ == "__main__":
     # Portfolio().find_pairs()
     # print(yf.Sector("basic-materials").top_companies.index)
     # run_ptp()
-    with open('recalls.txt', 'r') as f:
-        recalls = []
-        for line in f:
-            recall = eval(line.strip())
-            recalls.append(recall)
+    # with open('recalls.txt', 'r') as f:
+    #     recalls = []
+    #     for line in f:
+    #         recall = eval(line.strip())
+    #         recalls.append(recall)
         
-        z_enter = 1
-        z_exit = 0.5
-        recalls = [r for r in recalls if r["profit"] != "NA" and abs(float(r["profit"])) > 1e-9]
-        recalls = [r for r in recalls if r["z_enter#z_exit"] == f"{z_enter}#{z_exit}"]
-        recalls = [r for r in recalls if float(r["max_dd_pct"][:-1]) > 1.0 and float(r["max_dd_pct"][:-1]) < 10.0 ]
-        # recalls = [r for r in recalls if float(r["sharpe_ratio"]) > 1.0]
+    #     z_enter = 1
+    #     z_exit = 0.5
+    #     recalls = [r for r in recalls if r["profit"] != "NA" and abs(float(r["profit"])) > 1e-9]
+    #     recalls = [r for r in recalls if r["z_enter#z_exit"] == f"{z_enter}#{z_exit}"]
+    #     recalls = [r for r in recalls if float(r["max_dd_pct"][:-1]) > 1.0 and float(r["max_dd_pct"][:-1]) < 10.0 ]
+    #     # recalls = [r for r in recalls if float(r["sharpe_ratio"]) > 1.0]
         
-        all_profits = []
-        for r in recalls:
-            # r["profit"] = float(r["profit"])
-            print(r)
-            all_profits.append(float(r["profit"]))
+    #     all_profits = []
+    #     for r in recalls:
+    #         # r["profit"] = float(r["profit"])
+    #         print(r)
+    #         all_profits.append(float(r["profit"]))
         
-        profits_np = np.array(all_profits)
-        initial_investment = 1000*len(profits_np)
-        returns = profits_np / 1000.0
-        total_profit = profits_np.sum()
-        returns_std = np.std(returns)
-        total_return = total_profit / initial_investment
-        sharpe = (total_return - 0.06/4.0)/returns_std
-        print(total_profit)
-        print(sharpe)
+    #     profits_np = np.array(all_profits)
+    #     initial_investment = 1000*len(profits_np)
+    #     returns = profits_np / 1000.0
+    #     total_profit = profits_np.sum()
+    #     returns_std = np.std(returns)
+    #     total_return = total_profit / initial_investment
+    #     sharpe = (total_return - 0.06/4.0)/returns_std
+    #     print(total_profit)
+    #     print(sharpe)
         
         
         # recalls = sorted(recalls, key=lambda x: x["profit"])
@@ -153,4 +155,4 @@ if __name__ == "__main__":
         # print(len(recalls))
         # print(total_profit)
 
-    # main()
+    main()

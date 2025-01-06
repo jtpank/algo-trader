@@ -1,0 +1,249 @@
+# Plot configs
+
+# Data file
+plot_types:
+  time_series_2d:
+    data_path: ""
+    # bool to save plot
+    plot_save: True
+    # bool to show plot
+    plot_show: False
+    # plot name, if no name is specified then a default name will be used
+    plot_name: "Time Series Plot"
+    # location to save simulation plot
+    plot_save_path:
+    # factor to subsample the data
+    subsample: 1
+    # start time
+    start_time: "2020-02-01"
+    # end time
+    end_time: "2024-12-01"
+    # default plot height
+    default_height: 500
+    # plot spacing factor
+    spacing_factor: 0.15
+
+    plots_to_create:
+      - name: "Shares Owned "
+        signals: [
+            "KEETON RYAN S._personally_owned_Class A Common Stock",
+            "GILL DANIEL J._personally_owned_Class A Common Stock",
+            "HUSTON BENJAMIN E._personally_owned_Class A Common Stock",
+            "JENKINS MARK W._personally_owned_Class A Common Stock",
+            "GARCIA ERNEST C. III_personally_owned_Class A Common Stock",
+            "GARCIA ERNEST C. III_Ernest C. Garcia III Multi-Generational Trust III_Class A Common Stock",
+            "GARCIA ERNEST C. III_Ernest Irrevocable 2004 Trust III_Class A Common Stock",
+            "GARCIA ERNEST C. III_personally_owned_Class B Common Stock",
+            "BREAUX PAUL W._personally_owned_Class A Common Stock",
+            "Spruce House Partnership LLC_personally_owned_Common Stock",
+            " par value $.0001 per share",
+            "GARCIA ERNEST C. II_Verde Investments",
+            " Inc._Class A Common Stock",
+            "GARCIA ERNEST C. II_personally_owned_Class A Common Stock",
+            "GARCIA ERNEST C. II_personally_owned_Class B Common Stock",
+            "GARCIA ERNEST C. II_Ernest Irrevocable 2004 Trust III_Class A Common Stock",
+            "GARCIA ERNEST C. II_Ernest C. Garcia III Multi-Generational Trust III_Class A Common Stock",
+            "CVAN Holdings LLC_personally_owned_Class A Common Stock",
+            "CVAN Holdings LLC_personally_owned_Class A common stock",
+            "CVAN Holdings LLC_personally_owned_Class B Common Stock",
+            "Palmer Stephen R_personally_owned_Class A Common Stock",
+            "QUAYLE J DANFORTH_personally_owned_Class A Common Stock",
+            "QUAYLE J DANFORTH_James D. Quayle Separate Property Trust_Class A Common Stock",
+            "QUAYLE J DANFORTH_James D. Quayle 2000 Irrevocable Trust_Class A Common Stock",
+            "SULLIVAN GREGORY B_personally_owned_Class A Common Stock",
+            "MAROONE MICHAEL E_personally_owned_Class A Common Stock",
+            "MAROONE MICHAEL E_Maroone Family Partnership",
+            " LP_Class A Common Stock",
+            "MAROONE MICHAEL E_By Family Trust FBO Michael E. Maroone_Class A Common Stock",
+            "MAROONE MICHAEL E_Katherine C. Maroone Residuary Trust_Class A Common Stock",
+            "MAROONE MICHAEL E_Katherine C. Maroone Marital Trust_Class A Common Stock",
+            "MAROONE MICHAEL E_Maroone Management Inc._Class A Common Stock",
+            "MAROONE MICHAEL E_By Estate_Class A Common Stock",
+            "MAROONE MICHAEL E_By Michael Maroone Family Partnership",
+            " LP_Class A Common Stock",
+            "PLATT IRA J._personally_owned_Class A Common Stock",
+            "PLATT IRA J._By Trust_Class A Common Stock",
+            "PARIKH NEHA_personally_owned_Class A Common Stock",
+            "Taira Thomas_personally_owned_Class A Common Stock",
+            "KEETON RYAN S._personally_owned_Stock Options (Right to Buy)",
+            "KEETON RYAN S._personally_owned_Class B Units",
+            "GILL DANIEL J._personally_owned_Stock Options (Right to Buy)",
+            "GILL DANIEL J._personally_owned_Class B Units",
+            "HUSTON BENJAMIN E._personally_owned_Stock Options (Right to Buy)",
+            "HUSTON BENJAMIN E._personally_owned_Class B Units",
+            "JENKINS MARK W._personally_owned_Stock Options (Right to Buy)",
+            "JENKINS MARK W._personally_owned_Class B Units",
+            "GARCIA ERNEST C. III_personally_owned_Stock Options (Right to Buy)",
+            "GARCIA ERNEST C. III_personally_owned_Class A Units",
+            "BREAUX PAUL W._personally_owned_Stock Options (Right to Buy)",
+            "BREAUX PAUL W._personally_owned_Class B Units",
+            "GARCIA ERNEST C. II_personally_owned_Class A Units",
+            "CVAN Holdings LLC_personally_owned_Forward Sale Contract (obligation to sell)",
+            "CVAN Holdings LLC_personally_owned_Class A Common Units",
+            "QUAYLE J DANFORTH_personally_owned_Stock Options (Right to Buy)",
+            "SULLIVAN GREGORY B_personally_owned_Stock Options (Right to Buy)",
+            "PLATT IRA J._personally_owned_Class B Units",
+            "Taira Thomas_personally_owned_Stock Options (Right to Buy)",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "Other"
+        signals:
+          [
+            " Inc._Class A Common Stock",
+            " LP_Class A Common Stock",
+            " LP_Class A Common Stock",
+            " par value $.0001 per share",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "BREAUX PAUL W"
+        signals:
+          [
+            "BREAUX PAUL W._personally_owned_Class A Common Stock",
+            "BREAUX PAUL W._personally_owned_Class B Units",
+            "BREAUX PAUL W._personally_owned_Stock Options (Right to Buy)",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "CVAN Holdings LLC"
+        signals:
+          [
+            "CVAN Holdings LLC_personally_owned_Class A Common Stock",
+            "CVAN Holdings LLC_personally_owned_Class A Common Units",
+            "CVAN Holdings LLC_personally_owned_Class A common stock",
+            "CVAN Holdings LLC_personally_owned_Class B Common Stock",
+            "CVAN Holdings LLC_personally_owned_Forward Sale Contract (obligation to sell)",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "GARCIA ERNEST C. III"
+        signals:
+          [
+            "GARCIA ERNEST C. III_Ernest C. Garcia III Multi-Generational Trust III_Class A Common Stock",
+            "GARCIA ERNEST C. III_Ernest Irrevocable 2004 Trust III_Class A Common Stock",
+            "GARCIA ERNEST C. III_personally_owned_Class A Common Stock",
+            "GARCIA ERNEST C. III_personally_owned_Class A Units",
+            "GARCIA ERNEST C. III_personally_owned_Class B Common Stock",
+            "GARCIA ERNEST C. III_personally_owned_Stock Options (Right to Buy)",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "GARCIA ERNEST C. II"
+        signals:
+          [
+            "GARCIA ERNEST C. II_Ernest C. Garcia III Multi-Generational Trust III_Class A Common Stock",
+            "GARCIA ERNEST C. II_Ernest Irrevocable 2004 Trust III_Class A Common Stock",
+            "GARCIA ERNEST C. II_Verde Investments",
+            "GARCIA ERNEST C. II_personally_owned_Class A Common Stock",
+            "GARCIA ERNEST C. II_personally_owned_Class A Units",
+            "GARCIA ERNEST C. II_personally_owned_Class B Common Stock",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "Gill Daniel J"
+        signals:
+          [
+            "GILL DANIEL J._personally_owned_Class A Common Stock",
+            "GILL DANIEL J._personally_owned_Class B Units",
+            "GILL DANIEL J._personally_owned_Stock Options (Right to Buy)",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "HUSTON BENJAMIN E"
+        signals:
+          [
+            "HUSTON BENJAMIN E._personally_owned_Class A Common Stock",
+            "HUSTON BENJAMIN E._personally_owned_Class B Units",
+            "HUSTON BENJAMIN E._personally_owned_Stock Options (Right to Buy)",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "JENKINS MARK W"
+        signals:
+          [
+            "JENKINS MARK W._personally_owned_Class A Common Stock",
+            "JENKINS MARK W._personally_owned_Class B Units",
+            "JENKINS MARK W._personally_owned_Stock Options (Right to Buy)",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "KEETON RYAN S"
+        signals:
+          [
+            "KEETON RYAN S._personally_owned_Class A Common Stock",
+            "KEETON RYAN S._personally_owned_Class B Units",
+            "KEETON RYAN S._personally_owned_Stock Options (Right to Buy)",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "MAROONE MICHAEL E"
+        signals:
+          [
+            "MAROONE MICHAEL E_By Estate_Class A Common Stock",
+            "MAROONE MICHAEL E_By Family Trust FBO Michael E. Maroone_Class A Common Stock",
+            "MAROONE MICHAEL E_By Michael Maroone Family Partnership",
+            "MAROONE MICHAEL E_Katherine C. Maroone Marital Trust_Class A Common Stock",
+            "MAROONE MICHAEL E_Katherine C. Maroone Residuary Trust_Class A Common Stock",
+            "MAROONE MICHAEL E_Maroone Family Partnership",
+            "MAROONE MICHAEL E_Maroone Management Inc._Class A Common Stock",
+            "MAROONE MICHAEL E_personally_owned_Class A Common Stock",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "PARIKH NEHA"
+        signals:
+          [
+            "PARIKH NEHA_personally_owned_Class A Common Stock",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "PLATT IRA J."
+        signals:
+          [
+            "PLATT IRA J._By Trust_Class A Common Stock",
+            "PLATT IRA J._personally_owned_Class A Common Stock",
+            "PLATT IRA J._personally_owned_Class B Units",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "Palmer Stephen R."
+        signals:
+          [
+            "Palmer Stephen R_personally_owned_Class A Common Stock",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "QUAYLE J DANFORTH"
+        signals:
+          [
+            "QUAYLE J DANFORTH_James D. Quayle 2000 Irrevocable Trust_Class A Common Stock",
+            "QUAYLE J DANFORTH_James D. Quayle Separate Property Trust_Class A Common Stock",
+            "QUAYLE J DANFORTH_personally_owned_Class A Common Stock",
+            "QUAYLE J DANFORTH_personally_owned_Stock Options (Right to Buy)",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "SULLIVAN GREGORY B"
+        signals:
+          [
+            "SULLIVAN GREGORY B_personally_owned_Class A Common Stock",
+            "SULLIVAN GREGORY B_personally_owned_Stock Options (Right to Buy)",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "Spruce House Partnership LLC"
+        signals:
+          [
+            "Spruce House Partnership LLC_personally_owned_Common Stock",
+          ]
+        y_label: "Datetime"
+        height:
+      - name: "Taira Thomas"
+        signals:
+          [
+            "Taira Thomas_personally_owned_Class A Common Stock",
+            "Taira Thomas_personally_owned_Stock Options (Right to Buy)",
+          ]
+        y_label: "Datetime"
+        height:

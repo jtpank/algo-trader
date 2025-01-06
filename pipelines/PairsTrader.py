@@ -8,7 +8,6 @@ from statsmodels.regression.rolling import RollingOLS
 from statsmodels.tsa.stattools import adfuller, coint
 import matplotlib.pyplot as plt
 from datetime import datetime
-from data.utils import to_np
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning) 
 
@@ -53,7 +52,6 @@ class PairsTraderStatic(object):
         self.zscore = (self.spread - spread_mavg)/std_moving
 
         self.rolling_zscore = pd.DataFrame()
-
         self.rolling_zscore["Datetime"] = self.df_y.index.values
         self.rolling_zscore["Zscore"] = self.zscore.values
 
@@ -72,7 +70,6 @@ class PairsTraderStatic(object):
         std_moving = self.spread.tail(self.window_size).std()
         current_zscore = (spread_val - spread_mavg)/std_moving
         self.rolling_zscore.loc[len(self.rolling_zscore)] = pd.DataFrame({"Datetime" : [data_row_x.tail(1).index.values[0]], "Zscore": [current_zscore]}).iloc[0]
-        
     def get_zscore(self, date_str: str):
         """
         Asserts the datetime format is correct.
@@ -144,45 +141,23 @@ class PairsTrader(object):
         assert(len(self.series_y) == len(self.series_x))
         logger.trace("Initialized df_y and df_x.")
         series_x_const = sm.add_constant(self.series_x)
-        # if self.do_static_beta:
-        #     ols_model = sm.OLS(self.series_y, series_x_const)
-        #     results_ols = ols_model.fit()
-        #     self.beta = results_ols.params.iloc[1]
-        #     self.alpha = results_ols.params.iloc[0]
-        #     for idx, data_point in enumerate(self.series_x):
-        #         val = self.alpha + self.series_y.iloc[idx] - self.beta * data_point
-        #         self.spread = pd.concat([self.spread, pd.Series([val])])
-            
-        #     # residuals_mean = self.spread.mean()
-        #     # self.real_static_zscore = (self.spread - residuals_mean) / np.std(self.spread)
-        #     # self.zscore_static = pd.DataFrame()
-        #     # self.zscore_static["Datetime"] = self.df_y.index.values
-        #     # self.zscore_static["Zscore"] = self.real_static_zscore
-        #     # spread_mean = self.spread.mean()
-        #     spread_mavg30 = self.spread.rolling(self.window_size).mean()
-        #     std_30 = self.spread.rolling(window=self.window_size).std()
-        #     self.zscore_30_1 = (self.spread - spread_mavg30)/std_30
-        #     print(f"initialize {self.zscore_30_1}")
-        #     self.rolling_zscore = pd.DataFrame()
-        #     self.rolling_zscore["Datetime"] = self.df_y.index.values
-        #     self.rolling_zscore["Zscore"] = self.zscore_30_1.values
-        # else:
         roll_ols_model = RollingOLS(self.series_y,  series_x_const , window=self.window_size)
         rolling_results = roll_ols_model.fit(params_only=True)
 
         self.rolling_beta = pd.DataFrame()
         self.rolling_beta["Datetime"] = self.df_y.index.values
         self.rolling_beta["Beta"] = rolling_results.params[self.key].reset_index(drop=True)
-        self.spread = self.series_y - rolling_results.params['const'] - rolling_results.params[self.key] *  self.series_x 
 
-        spread_mavg1 = self.spread.rolling(window=1).mean()
-        spread_mavg30 = self.spread.rolling(self.window_size).mean()
-        std_30 = self.spread.rolling(window=self.window_size).std()
-        self.zscore_30_1 = (spread_mavg1 - spread_mavg30)/std_30
+        self.spread = self.series_y - rolling_results.params['const'] - rolling_results.params[self.key] *  self.series_x 
+        
+        spread_mavg = self.spread.rolling(self.window_size).mean()
+        std_moving = self.spread.rolling(window=self.window_size).std()
+        temp_zscore = (self.spread - spread_mavg)/std_moving
 
         self.rolling_zscore = pd.DataFrame()
         self.rolling_zscore["Datetime"] = self.df_y.index.values
-        self.rolling_zscore["Zscore"] = self.zscore_30_1.values
+        self.rolling_zscore["Zscore"] = temp_zscore.values
+
 
         if self.do_plots:
             plt.plot(self.zscore_30_1.index, self.zscore_30_1)  # Use the index for x-values and the values for y
@@ -230,25 +205,9 @@ class PairsTrader(object):
         return val
     
     def update(self, data_row_x: pd.DataFrame, data_row_y: pd.DataFrame):
-        # TODO: optimization only rolling OLS on the end
         self.df_x = pd.concat([self.df_x, data_row_x])
         self.df_y = pd.concat([self.df_y, data_row_y])
 
-        # if self.do_static_beta:
-        #     val = self.alpha + self.series_y.tail(1) - self.beta * self.series_x.tail(1)
-        #     self.series_x = self.df_x[self.key]
-        #     self.series_y = self.df_y[self.key]
-        #     assert(len(self.series_y) == len(self.series_x))
-        #     self.spread = pd.concat([self.spread, pd.Series([val])])
-
-        #     spread_mavg30 = float((self.spread.rolling(self.window_size).mean().tail(1)).iloc[0])
-        #     std_30 = float((self.spread.rolling(window=self.window_size).std().tail(1)).iloc[0])
-        #     # print(f"type {type((self.spread.rolling(window=self.window_size).std().tail(1)).iloc[0])}")
-        #     self.zscore_30_1 = (self.spread.tail(1).iloc[0].iloc[0] - spread_mavg30)/std_30
-        #     self.rolling_zscore = pd.DataFrame()
-        #     self.rolling_zscore["Datetime"] = self.df_y.index.values
-        #     self.rolling_zscore["Zscore"] = self.zscore_30_1
-        # else:
         self.series_x = self.df_x[self.key].tail(self.window_size)
         self.series_y = self.df_y[self.key].tail(self.window_size)
 
@@ -258,22 +217,16 @@ class PairsTrader(object):
 
         roll_ols_model = RollingOLS(self.series_y,  series_x_const , window=self.window_size)
         rolling_results = roll_ols_model.fit(params_only=True)
-        self.rolling_beta = pd.DataFrame()
-        self.rolling_beta["Datetime"] = self.df_y.index.values
-        self.rolling_beta["Beta"] = rolling_results.params[self.key].tail(1).iloc[0]
-        
-        fast_temp_spread = self.series_y - rolling_results.params['const'] - rolling_results.params[self.key] *  self.series_x 
+        self.rolling_beta.loc[len(self.rolling_beta)] = pd.DataFrame({"Datetime" : [data_row_x.tail(1).index.values[0]], "Beta": [rolling_results.params[self.key].tail(1).iloc[0]]}).iloc[0]
 
+        fast_temp_spread = self.series_y - rolling_results.params['const'] - rolling_results.params[self.key] *  self.series_x 
         self.spread = pd.concat([self.spread, fast_temp_spread.tail(1)])
 
-        spread_mavg1 = self.spread.rolling(window=1).mean()
-        spread_mavg30 = self.spread.rolling(self.window_size).mean()
-        std_30 = self.spread.rolling(window=self.window_size).std()
-        self.zscore_30_1 = (spread_mavg1 - spread_mavg30)/std_30
-
-        self.rolling_zscore = pd.DataFrame()
-        self.rolling_zscore["Datetime"] = self.df_y.index.values
-        self.rolling_zscore["Zscore"] = self.zscore_30_1.values
+        spread_mavg = self.spread.rolling(self.window_size).mean()
+        std_moving = self.spread.rolling(window=self.window_size).std()
+        new_zscore = (self.spread - spread_mavg)/std_moving
+        
+        self.rolling_zscore.loc[len(self.rolling_zscore)] = pd.DataFrame({"Datetime" : [data_row_x.tail(1).index.values[0]], "Zscore": [new_zscore.tail(1).iloc[0]]}).iloc[0]
 
     def is_cointegrated_on_date(self, date: str):
         coint_data_row = self.rolling_coint[self.rolling_coint.index == date]
@@ -322,9 +275,11 @@ if __name__=="__main__":
     ticker_2 = "PRM"
     stock_1_path = os.path.join(base_path,ticker_1 + ".csv" )
     stock_2_path = os.path.join(base_path,ticker_2 + ".csv" )
-    stock_df_1 = pd.read_csv(stock_1_path) 
-    stock_df_2 = pd.read_csv(stock_2_path)
-    pt = PairsTraderStatic(stock_df_1, stock_df_2)
+    stock_df_1 = pd.read_csv(stock_1_path, index_col="Datetime") 
+    stock_df_2 = pd.read_csv(stock_2_path, index_col="Datetime")
+    pt = PairsTrader(stock_df_1, stock_df_2)
+    # pt = PairsTraderStatic(stock_df_1, stock_df_2)
+
     update_df_row_1 = stock_df_1.tail(1)
     update_df_row_2 = stock_df_2.tail(1)
     pt.update(update_df_row_1, update_df_row_2)
